@@ -1,6 +1,10 @@
 const UNFILED = "unfiled_____";
 let upFolderId, downFolderId;
 
+// ----- Auto‑detect which button this is -----
+const manifest = browser.runtime.getManifest();
+const myVote = manifest.name.includes("Down") ? "down" : "up";
+
 // Initialisation promise – ensures folders exist before any vote logic
 let readyPromise = (async () => {
   let results = await browser.bookmarks.search({ title: "👍" });
@@ -38,7 +42,7 @@ async function updateIcon(tabId, url) {
   if (!/^https?:\/\//i.test(url)) return;
   await ensureReady();
   const vote = await getVote(url);
-  const icon = (vote === "up") ? "hilite.svg" : "normal.svg";
+  const icon = (vote === myVote) ? "hilite.svg" : "normal.svg";
   await browser.pageAction.setIcon({ tabId, path: icon });
   await browser.pageAction.show(tabId);
 }
@@ -65,15 +69,18 @@ browser.pageAction.onClicked.addListener(async (tab) => {
     }
   }
 
+  const myFolder = myVote === "up" ? upFolderId : downFolderId;
+  const otherVote = myVote === "down" ? "up" : "down";
+
   // Now apply the rule
   if (currentVote === null) {
     // No button selected → bookmark in this folder
-    await browser.bookmarks.create({ parentId: upFolderId, title: tab.title || url, url });
-  } else if (currentVote === "down") {
+    await browser.bookmarks.create({ parentId: myFolder, title: tab.title || url, url });
+  } else if (currentVote === otherVote) {
     // Other button selected → move to this folder
-    await browser.bookmarks.create({ parentId: upFolderId, title: tab.title || url, url });
+    await browser.bookmarks.create({ parentId: myFolder, title: tab.title || url, url });
   }
-  // If currentVote === "up", we already removed everything – that deselects
+  // If currentVote === myVote, we already removed everything – that deselects
 });
 
 // ---- Tab events ----
@@ -89,16 +96,18 @@ browser.tabs.onActivated.addListener(activeInfo => {
 // ---- Bookmark events (update icon immediately) ----
 browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
   await ensureReady();
+  const myFolder = myVote === "up" ? upFolderId : downFolderId;
   // Only react if the bookmark was added to our folder
-  if (bookmark.parentId !== upFolderId) return;
+  if (bookmark.parentId !== myFolder) return;
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab && tab.url === bookmark.url) updateIcon(tab.id, tab.url);
 });
 
 browser.bookmarks.onRemoved.addListener(async (id, removeInfo) => {
   await ensureReady();
+  const myFolder = myVote === "up" ? upFolderId : downFolderId;
   // Only react if the removed bookmark was from our folder
-  if (removeInfo.node.parentId !== upFolderId) return;
+  if (removeInfo.node.parentId !== myFolder) return;
   const url = removeInfo.node.url;
   if (!url) return;
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
