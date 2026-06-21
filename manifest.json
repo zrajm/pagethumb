@@ -3,6 +3,9 @@
   "name": "Like Page",
   "version": "1.0",
   "description": "Like a page – saves as a bookmark.",
+  "icons": {
+    "48": "hilite.svg"
+  },
   "permissions": ["bookmarks", "tabs", "activeTab"],
   "background": { "scripts": ["background.js"] },
   "page_action": {
