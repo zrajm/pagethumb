@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Thumbs Up Vote",
+  "version": "1.0",
+  "description": "👍 vote button for the address bar.",
+  "permissions": ["bookmarks", "tabs", "activeTab"],
+  "background": { "scripts": ["background.js"] },
+  "page_action": {
+    "default_icon": {
+      "16": "icons/up-inactive.svg",
+      "32": "icons/up-inactive.svg"
+    },
+    "default_title": "Thumbs up"
+  }
+}
