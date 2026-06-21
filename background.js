@@ -3,7 +3,7 @@ let upFolderId, downFolderId;
 
 // ----- Auto‑detect which button this is -----
 const manifest = browser.runtime.getManifest();
-const myVote = manifest.name.includes("Down") ? "down" : "up";
+const myVote = /\bdislike\b/i.test(manifest.name) ? "down" : "up";
 
 // Initialisation promise – ensures folders exist before any vote logic
 let readyPromise = (async () => {
