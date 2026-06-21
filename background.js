@@ -38,7 +38,7 @@ async function updateIcon(tabId, url) {
   if (!/^https?:\/\//i.test(url)) return;
   await ensureReady();
   const vote = await getVote(url);
-  const icon = (vote === "up") ? "icons/up-active.svg" : "icons/up-inactive.svg";
+  const icon = (vote === "up") ? "hilite.svg" : "normal.svg";
   await browser.pageAction.setIcon({ tabId, path: icon });
   await browser.pageAction.show(tabId);
 }
