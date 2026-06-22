@@ -2,16 +2,17 @@
   "manifest_version": 3,
   "name": "Like Page",
   "version": "1.0",
-  "description": "Like a page – saves as a bookmark.",
+  "description": "Like, dislike, or bookmark a page.",
   "icons": {
-    "48": "hilite.svg"
+    "48": "like-hilite.svg"
   },
   "permissions": ["bookmarks", "tabs", "activeTab"],
   "background": { "scripts": ["background.js"] },
   "action": {
+    "default_popup": "popup.html",
     "default_icon": {
-      "16": "normal.svg",
-      "32": "normal.svg"
+      "16": "like-normal.svg",
+      "32": "like-normal.svg"
     },
     "default_title": "Like page"
   }

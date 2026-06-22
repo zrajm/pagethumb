@@ -1,37 +1,43 @@
 const UNFILED = "unfiled_____";
-let upFolderId, downFolderId;
+let upFolderId, downFolderId, starFolderId;
 
-// ----- Auto‑detect which button this is -----
-const manifest = browser.runtime.getManifest();
-const myVote = /\bdislike\b/i.test(manifest.name) ? "down" : "up";
-
-// Cache for the original SVG texts
-let templateActive = null;
-let templateInactive = null;
+// Cache for the SVG templates (6 icons)
+let templates = {};
 
 async function loadTemplates() {
-  if (templateActive && templateInactive) return;
-  const [activeUrl, inactiveUrl] = [
-    browser.runtime.getURL("hilite.svg"),
-    browser.runtime.getURL("normal.svg"),
+  if (Object.keys(templates).length === 6) return;
+  const iconNames = [
+    "like-normal", "dislike-normal", "star-normal",
+    "like-hilite", "dislike-hilite", "star-hilite"
   ];
-  templateActive = await fetch(activeUrl).then(r => r.text());
-  templateInactive = await fetch(inactiveUrl).then(r => r.text());
+  for (const name of iconNames) {
+    const url = browser.runtime.getURL(`${name}.svg`);
+    templates[name] = await fetch(url).then(r => r.text());
+  }
 }
 
-// Initialisation promise – ensures folders exist before any vote logic
+// Initialisation – create three folders
 let readyPromise = (async () => {
+  // 👍 folder
   let results = await browser.bookmarks.search({ title: "👍" });
   upFolderId = results.find(f => f.type === "folder" && f.parentId === UNFILED)?.id;
   if (!upFolderId) {
     const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "👍", type: "folder" });
     upFolderId = folder.id;
   }
+  // 👎 folder
   results = await browser.bookmarks.search({ title: "👎" });
   downFolderId = results.find(f => f.type === "folder" && f.parentId === UNFILED)?.id;
   if (!downFolderId) {
     const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "👎", type: "folder" });
     downFolderId = folder.id;
+  }
+  // ⭐ folder
+  results = await browser.bookmarks.search({ title: "⭐" });
+  starFolderId = results.find(f => f.type === "folder" && f.parentId === UNFILED)?.id;
+  if (!starFolderId) {
+    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "⭐", type: "folder" });
+    starFolderId = folder.id;
   }
   await loadTemplates();
 })();
@@ -41,63 +47,98 @@ async function ensureReady() {
   await readyPromise;
 }
 
-// Get the current vote for a URL
-async function getVote(url) {
+// Get the current state for a URL: { category, bookmarkId }
+async function getState(url) {
   await ensureReady();
   const bookmarks = await browser.bookmarks.search({ url });
   for (const bm of bookmarks) {
-    if (bm.parentId === upFolderId) return "up";
-    if (bm.parentId === downFolderId) return "down";
+    if (bm.parentId === upFolderId) return { category: "up", bookmarkId: bm.id };
   }
-  return null;
+  for (const bm of bookmarks) {
+    if (bm.parentId === downFolderId) return { category: "down", bookmarkId: bm.id };
+  }
+  // Any bookmark (anywhere) triggers "star"
+  const first = bookmarks[0];
+  if (first) return { category: "star", bookmarkId: first.id };
+  return { category: null, bookmarkId: null };
+}
+
+// Build a data URL from an SVG template
+function svgToDataUrl(svgText) {
+  return "data:image/svg+xml," + encodeURIComponent(svgText);
 }
 
 // Update this extension's page action icon
 async function updateIcon(tabId, url) {
   if (!/^https?:\/\//i.test(url)) return;
   await ensureReady();
-  const vote = await getVote(url);
-  const isActive = vote === myVote;
-  const svgTemplate = isActive ? templateActive : templateInactive;
-  const dataUrl = "data:image/svg+xml," + encodeURIComponent(svgTemplate);
+  const state = await getState(url);
+  let templateName;
+  if (state.category === "up") templateName = "like-hilite";
+  else if (state.category === "down") templateName = "dislike-hilite";
+  else if (state.category === "star") templateName = "star-hilite";
+  else templateName = "like-normal"; // default
+  const svg = templates[templateName];
+  if (!svg) return;
+  const dataUrl = svgToDataUrl(svg);
   await browser.action.setIcon({ tabId, path: dataUrl });
+  // Update tooltip
+  let title = "Like page";
+  if (state.category === "up") title = "Remove Like";
+  else if (state.category === "down") title = "Remove Dislike";
+  else if (state.category === "star") title = "Remove Bookmark";
+  await browser.action.setTitle({ tabId, title });
 }
 
-// ---- Click handler (exactly as specified) ----
-browser.action.onClicked.addListener(async (tab) => {
-  if (!tab.url || !tab.url.startsWith("http")) return;
-  await ensureReady();
-
-  const url = tab.url;
-  // Find any existing bookmark in our folders
-  const bookmarks = await browser.bookmarks.search({ url });
-  let currentVote = null;
-  let existingBookmark = null;
-  for (const bm of bookmarks) {
-    if (bm.parentId === upFolderId) {
-      currentVote = "up";
-      existingBookmark = bm;
-      break;
-    } else if (bm.parentId === downFolderId) {
-      currentVote = "down";
-      existingBookmark = bm;
-      break;
-    }
+// ---- Handle messages from popup ----
+browser.runtime.onMessage.addListener(async (msg, sender) => {
+  if (msg.type === "getState") {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.url) return { category: null, bookmarkId: null };
+    return await getState(tab.url);
   }
 
-  const myFolder = myVote === "up" ? upFolderId : downFolderId;
-  const otherVote = myVote === "down" ? "up" : "down";
+  if (msg.type === "setCategory") {
+    const { category } = msg;
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.url) return;
+    const url = tab.url;
+    const state = await getState(url);
 
-  // Now apply the rule
-  if (currentVote === null) {
-    // No button selected → bookmark in this folder
-    await browser.bookmarks.create({ parentId: myFolder, title: tab.title || url, url });
-  } else if (currentVote === otherVote) {
-    // Other button selected → move to this folder
-    await browser.bookmarks.move(existingBookmark.id, { parentId: myFolder });
-  } else { // currentVote === myVote
-    // Deselect: remove the bookmark
-    await browser.bookmarks.remove(existingBookmark.id);
+    const targetFolder = category === "up" ? upFolderId :
+                         category === "down" ? downFolderId : starFolderId;
+
+    if (state.category === category) {
+      // Active – remove the bookmark
+      if (state.bookmarkId) {
+        await browser.bookmarks.remove(state.bookmarkId);
+      }
+    } else {
+      // Inactive – move or create
+      if (state.bookmarkId) {
+        // Move existing bookmark to target folder
+        await browser.bookmarks.move(state.bookmarkId, { parentId: targetFolder });
+      } else {
+        // No bookmark at all – create new
+        await browser.bookmarks.create({
+          parentId: targetFolder,
+          title: tab.title || url,
+          url
+        });
+      }
+    }
+    // Update icon for this tab
+    await updateIcon(tab.id, url);
+    return { success: true };
+  }
+
+  if (msg.type === "getIcons") {
+    // Return data URLs for all six icons for the popup
+    const iconData = {};
+    for (const [name, svg] of Object.entries(templates)) {
+      iconData[name] = svgToDataUrl(svg);
+    }
+    return iconData;
   }
 });
 
@@ -111,37 +152,14 @@ browser.tabs.onActivated.addListener(activeInfo => {
   });
 });
 
-// ---- Bookmark events (update icon immediately) ----
-browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
-  await ensureReady();
-  const myFolder = myVote === "up" ? upFolderId : downFolderId;
-  // Only react if the bookmark was added to our folder
-  if (bookmark.parentId !== myFolder) return;
+// ---- Bookmark events (update icon) ----
+async function refreshActiveTabIcon() {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  if (tab && tab.url === bookmark.url) updateIcon(tab.id, tab.url);
-});
+  if (tab && tab.url) updateIcon(tab.id, tab.url);
+}
 
-browser.bookmarks.onRemoved.addListener(async (id, removeInfo) => {
-  await ensureReady();
-  const myFolder = myVote === "up" ? upFolderId : downFolderId;
-  // Only react if the removed bookmark was from our folder
-  if (removeInfo.node.parentId !== myFolder) return;
-  const url = removeInfo.node.url;
-  if (!url) return;
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  if (tab && tab.url === url) updateIcon(tab.id, tab.url);
-});
-
-// ---- React to moves between our folders ----
-browser.bookmarks.onMoved.addListener(async (id, moveInfo) => {
-  await ensureReady();
-  // Get the bookmark node to know its URL and new parent
-  const [bookmark] = await browser.bookmarks.get(id);
-  if (!bookmark || !bookmark.url) return;
-  // Only act if the new parent is one of our folders
-  if (bookmark.parentId !== upFolderId && bookmark.parentId !== downFolderId) return;
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  if (tab && tab.url === bookmark.url) updateIcon(tab.id, tab.url);
-});
+browser.bookmarks.onCreated.addListener(refreshActiveTabIcon);
+browser.bookmarks.onRemoved.addListener(refreshActiveTabIcon);
+browser.bookmarks.onMoved.addListener(refreshActiveTabIcon);
 
 //EOF

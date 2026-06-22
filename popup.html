@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+  html { box-sizing: border-box; color-scheme: light dark }
+  * { box-sizing: inherit; margin: 0; padding: 0; border-radius: 0 }
+  body {
+      background: field;
+      color: fieldtext;
+  }
+  .menu {
+      display: flex;
+      padding: 2px 4px;
+      align-items: center;
+      justify-content: center;
+  }
+  .menu button {
+      &:hover { background: #8886 }
+      background: inherit; color: inherit;
+      border: 0; border-radius: 4px;
+      cursor: pointer;
+      padding: 8px 10px;
+  }
+  .menu button img {
+      display: block;
+      width: 20px;
+      height: 20px;
+  }
+</style>
+<div class="menu">
+  <button id="btn-up"   title="Like page"><img id="img-up" src="" alt="👍"></button>
+  <button id="btn-down" title="Dislike page"><img id="img-down" src="" alt="👎"></button>
+  <button id="btn-star" title="Bookmark page"><img id="img-star" src="" alt="⭐"></button>
+</div>
+<script src="popup.js"></script>
+<!--EOF-->
