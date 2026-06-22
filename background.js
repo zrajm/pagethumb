@@ -11,7 +11,7 @@ async function loadTemplates() {
     "like-hilite", "dislike-hilite", "star-hilite"
   ];
   for (const name of iconNames) {
-    const url = browser.runtime.getURL(`${name}.svg`);
+    const url = browser.runtime.getURL(`pic/${name}.svg`);
     templates[name] = await fetch(url).then(r => r.text());
   }
 }
