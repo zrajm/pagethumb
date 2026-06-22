@@ -1,21 +1,6 @@
 const UNFILED = "unfiled_____";
 let upFolderId, downFolderId, starFolderId;
 
-// Cache for the SVG templates (6 icons)
-let templates = {};
-
-async function loadTemplates() {
-  if (Object.keys(templates).length === 6) return;
-  const iconNames = [
-    "like-normal", "dislike-normal", "star-normal",
-    "like-hilite", "dislike-hilite", "star-hilite"
-  ];
-  for (const name of iconNames) {
-    const url = browser.runtime.getURL(`pic/${name}.svg`);
-    templates[name] = await fetch(url).then(r => r.text());
-  }
-}
-
 // Initialisation – create three folders
 let readyPromise = (async () => {
   // 👍 folder
@@ -39,7 +24,6 @@ let readyPromise = (async () => {
     const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "⭐", type: "folder" });
     starFolderId = folder.id;
   }
-  await loadTemplates();
 })();
 
 // Utility: wait for folders
@@ -63,25 +47,17 @@ async function getState(url) {
   return { category: null, bookmarkId: null };
 }
 
-// Build a data URL from an SVG template
-function svgToDataUrl(svgText) {
-  return "data:image/svg+xml," + encodeURIComponent(svgText);
-}
-
 // Update this extension's page action icon
 async function updateIcon(tabId, url) {
   if (!/^https?:\/\//i.test(url)) return;
   await ensureReady();
   const state = await getState(url);
-  let templateName;
-  if (state.category === "up") templateName = "like-hilite";
-  else if (state.category === "down") templateName = "dislike-hilite";
-  else if (state.category === "star") templateName = "star-hilite";
-  else templateName = "like-normal"; // default
-  const svg = templates[templateName];
-  if (!svg) return;
-  const dataUrl = svgToDataUrl(svg);
-  await browser.action.setIcon({ tabId, path: dataUrl });
+  let iconPath;
+  if (state.category === "up") iconPath = "pic/like-hilite.svg";
+  else if (state.category === "down") iconPath = "pic/dislike-hilite.svg";
+  else if (state.category === "star") iconPath = "pic/star-hilite.svg";
+  else iconPath = "pic/like-normal.svg";
+  await browser.action.setIcon({ tabId, path: iconPath });
 }
 
 // ---- Handle messages from popup ----

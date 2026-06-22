@@ -1,5 +1,3 @@
-const categories = ["up", "down", "star"];
-
 // Helper to get current tab
 async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
@@ -14,8 +12,7 @@ async function initPopup() {
     return;
   }
 
-  // ---- AUTO‑LIKE: if no bookmark exists, create one in "Like" folder ----
-  // Get current state from background
+  // AUTO‑LIKE: if no bookmark exists, create one in "Like" folder
   let state = await browser.runtime.sendMessage({ type: "getState" });
 
   if (state.category === null) {
