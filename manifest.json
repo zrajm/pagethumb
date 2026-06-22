@@ -4,15 +4,15 @@
   "version": "1.0",
   "description": "Like, dislike, or bookmark a page.",
   "icons": {
-    "48": "like-hilite.svg"
+    "48": "pic/like-hilite.svg"
   },
   "permissions": ["bookmarks", "tabs", "activeTab"],
   "background": { "scripts": ["background.js"] },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "like-normal.svg",
-      "32": "like-normal.svg"
+      "16": "pic/like-normal.svg",
+      "32": "pic/like-normal.svg"
     },
     "default_title": "Like/dislike Page"
   }

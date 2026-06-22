@@ -14,8 +14,20 @@ async function initPopup() {
     return;
   }
 
-  // Get state from background
-  const state = await browser.runtime.sendMessage({ type: "getState" });
+  // ---- AUTO‑LIKE: if no bookmark exists, create one in "Like" folder ----
+  // Get current state from background
+  let state = await browser.runtime.sendMessage({ type: "getState" });
+
+  if (state.category === null) {
+    // No bookmark – create it now
+    await browser.runtime.sendMessage({
+      type: "setCategory",
+      category: "up"
+    });
+    // Fetch updated state
+    state = await browser.runtime.sendMessage({ type: "getState" });
+  }
+
   // Get all icon data URLs
   const icons = await browser.runtime.sendMessage({ type: "getIcons" });
 
