@@ -5,6 +5,20 @@ let upFolderId, downFolderId;
 const manifest = browser.runtime.getManifest();
 const myVote = /\bdislike\b/i.test(manifest.name) ? "down" : "up";
 
+// Cache for the original SVG texts
+let templateActive = null;
+let templateInactive = null;
+
+async function loadTemplates() {
+  if (templateActive && templateInactive) return;
+  const [activeUrl, inactiveUrl] = [
+    browser.runtime.getURL("hilite.svg"),
+    browser.runtime.getURL("normal.svg"),
+  ];
+  templateActive = await fetch(activeUrl).then(r => r.text());
+  templateInactive = await fetch(inactiveUrl).then(r => r.text());
+}
+
 // Initialisation promise – ensures folders exist before any vote logic
 let readyPromise = (async () => {
   let results = await browser.bookmarks.search({ title: "👍" });
@@ -19,6 +33,7 @@ let readyPromise = (async () => {
     const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "👎", type: "folder" });
     downFolderId = folder.id;
   }
+  await loadTemplates();
 })();
 
 // Utility: wait for folders
@@ -42,8 +57,10 @@ async function updateIcon(tabId, url) {
   if (!/^https?:\/\//i.test(url)) return;
   await ensureReady();
   const vote = await getVote(url);
-  const icon = (vote === myVote) ? "hilite.svg" : "normal.svg";
-  await browser.pageAction.setIcon({ tabId, path: icon });
+  const isActive = vote === myVote;
+  const svgTemplate = isActive ? templateActive : templateInactive;
+  const dataUrl = "data:image/svg+xml," + encodeURIComponent(svgTemplate);
+  await browser.pageAction.setIcon({ tabId, path: dataUrl });
   await browser.pageAction.show(tabId);
 }
 
@@ -113,3 +130,5 @@ browser.bookmarks.onRemoved.addListener(async (id, removeInfo) => {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab && tab.url === url) updateIcon(tab.id, tab.url);
 });
+
+//EOF
