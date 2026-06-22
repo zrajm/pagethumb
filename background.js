@@ -73,16 +73,16 @@ browser.pageAction.onClicked.addListener(async (tab) => {
   // Find any existing bookmark in our folders
   const bookmarks = await browser.bookmarks.search({ url });
   let currentVote = null;
+  let existingBookmark = null;
   for (const bm of bookmarks) {
-    if (bm.parentId === upFolderId) currentVote = "up";
-    else if (bm.parentId === downFolderId) currentVote = "down";
-    if (currentVote) break;
-  }
-
-  // Remove all existing bookmarks for this URL (from both folders)
-  for (const bm of bookmarks) {
-    if (bm.parentId === upFolderId || bm.parentId === downFolderId) {
-      await browser.bookmarks.remove(bm.id);
+    if (bm.parentId === upFolderId) {
+      currentVote = "up";
+      existingBookmark = bm;
+      break;
+    } else if (bm.parentId === downFolderId) {
+      currentVote = "down";
+      existingBookmark = bm;
+      break;
     }
   }
 
@@ -95,9 +95,11 @@ browser.pageAction.onClicked.addListener(async (tab) => {
     await browser.bookmarks.create({ parentId: myFolder, title: tab.title || url, url });
   } else if (currentVote === otherVote) {
     // Other button selected → move to this folder
-    await browser.bookmarks.create({ parentId: myFolder, title: tab.title || url, url });
+    await browser.bookmarks.move(existingBookmark.id, { parentId: myFolder });
+  } else { // currentVote === myVote
+    // Deselect: remove the bookmark
+    await browser.bookmarks.remove(existingBookmark.id);
   }
-  // If currentVote === myVote, we already removed everything – that deselects
 });
 
 // ---- Tab events ----
@@ -129,6 +131,18 @@ browser.bookmarks.onRemoved.addListener(async (id, removeInfo) => {
   if (!url) return;
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab && tab.url === url) updateIcon(tab.id, tab.url);
+});
+
+// ---- React to moves between our folders ----
+browser.bookmarks.onMoved.addListener(async (id, moveInfo) => {
+  await ensureReady();
+  // Get the bookmark node to know its URL and new parent
+  const [bookmark] = await browser.bookmarks.get(id);
+  if (!bookmark || !bookmark.url) return;
+  // Only act if the new parent is one of our folders
+  if (bookmark.parentId !== upFolderId && bookmark.parentId !== downFolderId) return;
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  if (tab && tab.url === bookmark.url) updateIcon(tab.id, tab.url);
 });
 
 //EOF
