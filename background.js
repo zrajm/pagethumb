@@ -82,12 +82,6 @@ async function updateIcon(tabId, url) {
   if (!svg) return;
   const dataUrl = svgToDataUrl(svg);
   await browser.action.setIcon({ tabId, path: dataUrl });
-  // Update tooltip
-  let title = "Like page";
-  if (state.category === "up") title = "Remove Like";
-  else if (state.category === "down") title = "Remove Dislike";
-  else if (state.category === "star") title = "Remove Bookmark";
-  await browser.action.setTitle({ tabId, title });
 }
 
 // ---- Handle messages from popup ----
