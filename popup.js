@@ -19,25 +19,17 @@ async function initPopup() {
   let state = await browser.runtime.sendMessage({ type: "getState" });
 
   if (state.category === null) {
-    // No bookmark – create it now
-    await browser.runtime.sendMessage({
-      type: "setCategory",
-      category: "up"
-    });
-    // Fetch updated state
+    await browser.runtime.sendMessage({ type: "setCategory", category: "up" });
     state = await browser.runtime.sendMessage({ type: "getState" });
   }
 
-  // Get all icon data URLs
-  const icons = await browser.runtime.sendMessage({ type: "getIcons" });
-
   // Helper to set button image and tooltip
-  function setupButton(category, imgId, btnId, normalName, hiliteName, labelActive, labelInactive) {
+  function setupButton(category, imgId, normalPath, hilitePath, labelActive, labelInactive) {
     const img = document.getElementById(imgId);
-    const btn = document.getElementById(btnId);
+    const btn = document.getElementById(`btn-${category}`);
     const isActive = state.category === category;
-    const iconKey = isActive ? hiliteName : normalName;
-    img.src = icons[iconKey];
+    // Set the correct icon path
+    img.src = isActive ? hilitePath : normalPath;
     btn.title = isActive ? labelActive : labelInactive;
     btn.addEventListener("click", async () => {
       await browser.runtime.sendMessage({ type: "setCategory", category });
@@ -45,14 +37,14 @@ async function initPopup() {
     });
   }
 
-  setupButton("up", "img-up", "btn-up",
-              "like-normal", "like-hilite",
+  setupButton("up", "img-up",
+              "pic/like-normal.svg", "pic/like-hilite.svg",
               "Remove Like", "Like page");
-  setupButton("down", "img-down", "btn-down",
-              "dislike-normal", "dislike-hilite",
+  setupButton("down", "img-down",
+              "pic/dislike-normal.svg", "pic/dislike-hilite.svg",
               "Remove Dislike", "Dislike page");
-  setupButton("star", "img-star", "btn-star",
-              "star-normal", "hilite-star",
+  setupButton("star", "img-star",
+              "pic/star-normal.svg", "pic/star-hilite.svg",
               "Remove Bookmark", "Bookmark page");
 }
 

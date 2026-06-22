@@ -125,15 +125,6 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
     await updateIcon(tab.id, url);
     return { success: true };
   }
-
-  if (msg.type === "getIcons") {
-    // Return data URLs for all six icons for the popup
-    const iconData = {};
-    for (const [name, svg] of Object.entries(templates)) {
-      iconData[name] = svgToDataUrl(svg);
-    }
-    return iconData;
-  }
 });
 
 // ---- Tab events ----
