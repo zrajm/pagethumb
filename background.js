@@ -60,12 +60,11 @@ async function updateIcon(tabId, url) {
   const isActive = vote === myVote;
   const svgTemplate = isActive ? templateActive : templateInactive;
   const dataUrl = "data:image/svg+xml," + encodeURIComponent(svgTemplate);
-  await browser.pageAction.setIcon({ tabId, path: dataUrl });
-  await browser.pageAction.show(tabId);
+  await browser.action.setIcon({ tabId, path: dataUrl });
 }
 
 // ---- Click handler (exactly as specified) ----
-browser.pageAction.onClicked.addListener(async (tab) => {
+browser.action.onClicked.addListener(async (tab) => {
   if (!tab.url || !tab.url.startsWith("http")) return;
   await ensureReady();
 
