@@ -1,0 +1,24 @@
+-*- org -*-
+#+TODO: TODO | DONE CANT!
+
+* TODO Synchronize bookmarks with phone?
+** TODO Create similar extension for Android Firefox
+   An also share info between phone and computers.
+* DONE popup.html should reference SVGs directly
+  CLOSED: [2026-06-22 Mon 17:37]
+* DONE Clicking thumbs up (non-hilited) should like
+  CLOSED: [2026-06-22 Mon 17:00]
+  And popup then allows you to change your mind, but just closing the menu
+  should result in you having liked the page.
+* DONE Move SVG icons to subdir (pic/)
+  CLOSED: [2026-06-22 Mon 15:52]
+* DONE Mouseover text for the extension button
+  CLOSED: [2026-06-22 Mon 15:49]
+* DONE Wanna MOVE bookmarks (keep old dates etc)
+  CLOSED: [2026-06-22 Mon 07:52]
+* DONE Make it a button outside the URL bar
+  CLOSED: [2026-06-22 Mon 08:07]
+* CANT Display bookmark menu?
+  CLOSED: [2026-06-22 Mon 07:26]
+* [eof]
+

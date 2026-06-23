@@ -2,6 +2,13 @@
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
 const UNFILED = "unfiled_____";
+const iconPaths = {
+  down: "pic/dislike-hilite.svg",
+  error: "pic/like-error.svg",
+  normal: "pic/like-normal.svg",
+  star: "pic/star-hilite.svg",
+  up: "pic/like-hilite.svg",
+}
 let upFolderId, downFolderId, starFolderId;
 
 // Initialisation – create three folders
@@ -44,42 +51,33 @@ async function getBookmarkCategory(url) {
   try {
     bookmarks = await browser.bookmarks.search({ url });
   } catch {
+    // Couldn't fet bookmarks (a protected page?).
     return { category: 'error', bookmarkId: null };
   }
-  for (const bm of bookmarks) {
-    if (bm.parentId === upFolderId) return { category: "up", bookmarkId: bm.id };
+  // Is paged bookmarked in 👍, or 👎?
+  for (const [name, id] of [['up', upFolderId], ['down', downFolderId]]) {
+    const found = bookmarks.find(({ parentId }) => parentId === id);
+    if (found) {
+      return { category: name, bookmarkId: found.id };
+    }
   }
-  for (const bm of bookmarks) {
-    if (bm.parentId === downFolderId) return { category: "down", bookmarkId: bm.id };
+  // Page has at least one bookmark elsewhere.
+  if (bookmarks.length > 0) {
+    const [{ id }] = bookmarks;
+    return { category: "star", bookmarkId: id };
   }
-  // Any bookmark (anywhere) triggers "star"
-  const first = bookmarks[0];
-  if (first) return { category: "star", bookmarkId: first.id };
+  // Page not bookmarked at all.
   return { category: null, bookmarkId: null };
 }
 
 // Get state & update button icon
 async function getState(tabId, url) {
   const state = await getBookmarkCategory(url);
-
-  // Update this extension's page action icon
-  if (state.category === 'error') {
-    await browser.action.setIcon({ tabId, path: "pic/like-error.svg" });
-    await browser.action.setTitle({ tabId, title: "Unsupported URL" });
-    // Disable popup for this tab (click does nothing)
-    await browser.action.setPopup({ tabId, popup: "" });
-    return;
-  }
-  let iconPath;
-  if (state.category === "up") iconPath = "pic/like-hilite.svg";
-  else if (state.category === "down") iconPath = "pic/dislike-hilite.svg";
-  else if (state.category === "star") iconPath = "pic/star-hilite.svg";
-  else iconPath = "pic/like-normal.svg";
-  await browser.action.setIcon({ tabId, path: iconPath });
-  // Restore default tooltip & mouseover text from manifest
-  await browser.action.setTitle({ tabId, title: null });
-  await browser.action.setPopup({ tabId, popup: null });
-
+  const [title, popup] = state.category === 'error'
+    ? ["Unsupported Page", ""] : [null, null];
+  await browser.action.setTitle({ tabId, title });
+  await browser.action.setPopup({ tabId, popup }); // enable/disable popup
+  await browser.action.setIcon ({ tabId, path: iconPaths[state.category] });
   return state;
 }
 
@@ -90,14 +88,10 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
     if (!tab || !tab.url) return { category: null, bookmarkId: null };
     return await getState(tab.id, tab.url);
   }
-
   if (msg.type === "setCategory") {
     const { category } = msg;
-    const tab = await getCurrentTab();
-    if (!tab || !tab.url) return;
-    const url = tab.url;
-    const state = await getState(tab.id, url);
-
+    const { id, url, title } = await getCurrentTab();
+    const state = await getState(id, url);
     const targetFolder = category === "up" ? upFolderId :
                          category === "down" ? downFolderId : starFolderId;
 
@@ -115,7 +109,7 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
         // No bookmark at all – create new
         await browser.bookmarks.create({
           parentId: targetFolder,
-          title: tab.title || url,
+          title: title ?? url,
           url
         });
       }
@@ -124,31 +118,24 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
   }
 });
 
-// ---- Tab events ----
-browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.url) getState(tabId, tab.url);
+// When tab was updated
+browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {
+  if (status !== "complete") { return }
+  getState(tabId, url);
 });
-browser.tabs.onActivated.addListener(activeInfo => {
-  browser.tabs.get(activeInfo.tabId).then(tab => {
-    if (tab.url) getState(tab.id, tab.url);
-  });
+browser.tabs.onActivated.addListener(({ tabId }) => {
+  browser.tabs.get(tabId).then(({ id, url }) => getState(id, url));
 });
 
-// ---- Bookmark events (update icon) ----
-async function refreshActiveTabIcon() {
-  const tab = await getCurrentTab();
-  if (tab && tab.url) getState(tab.id, tab.url);
+// When a bookmark change
+function refreshActiveTabIcon() {
+  getCurrentTab().then(({ id, url }) => getState(id, url));
 }
-
 browser.bookmarks.onCreated.addListener(refreshActiveTabIcon);
 browser.bookmarks.onRemoved.addListener(refreshActiveTabIcon);
 browser.bookmarks.onMoved.addListener(refreshActiveTabIcon);
 
-// ---- Update icon when loading the extension ----
-getCurrentTab().then(tabs => {
-  if (tabs.length > 0 && tabs[0].url) {
-    getState(tabs[0].id, tabs[0].url);
-  }
-});
+// When extension is loaded
+getCurrentTab().then(({ id, url }) => getState(id, url));
 
 //EOF
