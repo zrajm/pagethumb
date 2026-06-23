@@ -35,9 +35,14 @@ async function ensureReady() {
 }
 
 // Get the current state for a URL: { category, bookmarkId }
-async function getState(url) {
+async function getBookmarkCategory(url) {
   await ensureReady();
-  const bookmarks = await browser.bookmarks.search({ url });
+  let bookmarks;
+  try {
+    bookmarks = await browser.bookmarks.search({ url });
+  } catch {
+    return { category: 'error', bookmarkId: null };
+  }
   for (const bm of bookmarks) {
     if (bm.parentId === upFolderId) return { category: "up", bookmarkId: bm.id };
   }
@@ -50,28 +55,29 @@ async function getState(url) {
   return { category: null, bookmarkId: null };
 }
 
-// Update this extension's page action icon
-async function updateIcon(tabId, url) {
-  // --- Unsupported URL (non‑HTTP) ---
-  if (!url || !/^https?:\/\//i.test(url)) {
+// Get state & update button icon
+async function getState(tabId, url) {
+  const state = await getBookmarkCategory(url);
+
+  // Update this extension's page action icon
+  if (state.category === 'error') {
     await browser.action.setIcon({ tabId, path: "pic/like-error.svg" });
     await browser.action.setTitle({ tabId, title: "Unsupported URL" });
     // Disable popup for this tab (click does nothing)
     await browser.action.setPopup({ tabId, popup: "" });
     return;
   }
-
-  // --- Supported URL ---
-  await ensureReady();
-  const state = await getState(url);
   let iconPath;
   if (state.category === "up") iconPath = "pic/like-hilite.svg";
   else if (state.category === "down") iconPath = "pic/dislike-hilite.svg";
   else if (state.category === "star") iconPath = "pic/star-hilite.svg";
   else iconPath = "pic/like-normal.svg";
   await browser.action.setIcon({ tabId, path: iconPath });
-  // Restore default tooltip (from manifest)
+  // Restore default tooltip & mouseover text from manifest
+  await browser.action.setTitle({ tabId, title: null });
   await browser.action.setPopup({ tabId, popup: null });
+
+  return state;
 }
 
 // ---- Handle messages from popup ----
@@ -79,7 +85,7 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
   if (msg.type === "getState") {
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tab || !tab.url) return { category: null, bookmarkId: null };
-    return await getState(tab.url);
+    return await getState(tab.id, tab.url);
   }
 
   if (msg.type === "setCategory") {
@@ -87,7 +93,7 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tab || !tab.url) return;
     const url = tab.url;
-    const state = await getState(url);
+    const state = await getState(tab.id, url);
 
     const targetFolder = category === "up" ? upFolderId :
                          category === "down" ? downFolderId : starFolderId;
@@ -111,26 +117,24 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
         });
       }
     }
-    // Update icon for this tab
-    await updateIcon(tab.id, url);
     return { success: true };
   }
 });
 
 // ---- Tab events ----
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.url) updateIcon(tabId, tab.url);
+  if (changeInfo.status === "complete" && tab.url) getState(tabId, tab.url);
 });
 browser.tabs.onActivated.addListener(activeInfo => {
   browser.tabs.get(activeInfo.tabId).then(tab => {
-    if (tab.url) updateIcon(tab.id, tab.url);
+    if (tab.url) getState(tab.id, tab.url);
   });
 });
 
 // ---- Bookmark events (update icon) ----
 async function refreshActiveTabIcon() {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  if (tab && tab.url) updateIcon(tab.id, tab.url);
+  if (tab && tab.url) getState(tab.id, tab.url);
 }
 
 browser.bookmarks.onCreated.addListener(refreshActiveTabIcon);
@@ -140,7 +144,7 @@ browser.bookmarks.onMoved.addListener(refreshActiveTabIcon);
 // ---- Update icon when loading the extension ----
 browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
   if (tabs.length > 0 && tabs[0].url) {
-    updateIcon(tabs[0].id, tabs[0].url);
+    getState(tabs[0].id, tabs[0].url);
   }
 });
 
