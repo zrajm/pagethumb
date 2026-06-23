@@ -1,3 +1,6 @@
+//-*- js-indent-level: 2 -*-
+// Copyright 2026 by zrajm. License: GPLv2 (code).
+
 const UNFILED = "unfiled_____";
 let upFolderId, downFolderId, starFolderId;
 

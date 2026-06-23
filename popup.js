@@ -1,3 +1,6 @@
+//-*- js-indent-level: 2 -*-
+// Copyright 2026 by zrajm. License: GPLv2 (code).
+
 // Helper to get current tab
 async function getCurrentTab() {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
