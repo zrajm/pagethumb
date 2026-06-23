@@ -49,7 +49,16 @@ async function getState(url) {
 
 // Update this extension's page action icon
 async function updateIcon(tabId, url) {
-  if (!/^https?:\/\//i.test(url)) return;
+  // --- Unsupported URL (non‑HTTP) ---
+  if (!url || !/^https?:\/\//i.test(url)) {
+    await browser.action.setIcon({ tabId, path: "pic/like-error.svg" });
+    await browser.action.setTitle({ tabId, title: "Unsupported URL" });
+    // Disable popup for this tab (click does nothing)
+    await browser.action.setPopup({ tabId, popup: "" });
+    return;
+  }
+
+  // --- Supported URL ---
   await ensureReady();
   const state = await getState(url);
   let iconPath;
@@ -58,6 +67,8 @@ async function updateIcon(tabId, url) {
   else if (state.category === "star") iconPath = "pic/star-hilite.svg";
   else iconPath = "pic/like-normal.svg";
   await browser.action.setIcon({ tabId, path: iconPath });
+  // Restore default tooltip (from manifest)
+  await browser.action.setPopup({ tabId, popup: null });
 }
 
 // ---- Handle messages from popup ----
@@ -122,5 +133,12 @@ async function refreshActiveTabIcon() {
 browser.bookmarks.onCreated.addListener(refreshActiveTabIcon);
 browser.bookmarks.onRemoved.addListener(refreshActiveTabIcon);
 browser.bookmarks.onMoved.addListener(refreshActiveTabIcon);
+
+// ---- Update icon when loading the extension ----
+browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
+  if (tabs.length > 0 && tabs[0].url) {
+    updateIcon(tabs[0].id, tabs[0].url);
+  }
+});
 
 //EOF
