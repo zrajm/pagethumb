@@ -1,11 +1,8 @@
 //-*- js-indent-level: 2 -*-
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
-// Helper to get current tab
-async function getCurrentTab() {
-  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  return tabs[0];
-}
+const getCurrentTab = () =>
+  browser.tabs.query({ active: true, currentWindow: true }).then(([x]) => x);
 
 // Load state and icons, then render
 async function initPopup() {

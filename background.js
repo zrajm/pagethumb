@@ -34,6 +34,9 @@ async function ensureReady() {
   await readyPromise;
 }
 
+const getCurrentTab = () =>
+  browser.tabs.query({ active: true, currentWindow: true }).then(([x]) => x);
+
 // Get the current state for a URL: { category, bookmarkId }
 async function getBookmarkCategory(url) {
   await ensureReady();
@@ -83,14 +86,14 @@ async function getState(tabId, url) {
 // ---- Handle messages from popup ----
 browser.runtime.onMessage.addListener(async (msg, sender) => {
   if (msg.type === "getState") {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    const tab = await getCurrentTab();
     if (!tab || !tab.url) return { category: null, bookmarkId: null };
     return await getState(tab.id, tab.url);
   }
 
   if (msg.type === "setCategory") {
     const { category } = msg;
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    const tab = await getCurrentTab();
     if (!tab || !tab.url) return;
     const url = tab.url;
     const state = await getState(tab.id, url);
@@ -133,7 +136,7 @@ browser.tabs.onActivated.addListener(activeInfo => {
 
 // ---- Bookmark events (update icon) ----
 async function refreshActiveTabIcon() {
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  const tab = await getCurrentTab();
   if (tab && tab.url) getState(tab.id, tab.url);
 }
 
@@ -142,7 +145,7 @@ browser.bookmarks.onRemoved.addListener(refreshActiveTabIcon);
 browser.bookmarks.onMoved.addListener(refreshActiveTabIcon);
 
 // ---- Update icon when loading the extension ----
-browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
+getCurrentTab().then(tabs => {
   if (tabs.length > 0 && tabs[0].url) {
     getState(tabs[0].id, tabs[0].url);
   }
