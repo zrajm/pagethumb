@@ -7,7 +7,10 @@
     "48": "pic/like-hilite.svg"
   },
   "permissions": ["bookmarks", "tabs", "activeTab"],
-  "background": { "scripts": ["background.js"] },
+    "background": {
+        "type": "module",
+        "scripts": ["background.js"]
+    },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

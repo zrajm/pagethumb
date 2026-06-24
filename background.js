@@ -1,14 +1,9 @@
 //-*- js-indent-level: 2 -*-
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
+import { getCurrentTab, errorIcon, defaultIcon, folderIcons } from './shared.js';
+
 const UNFILED = "unfiled_____";
-const iconPaths = {
-  down: "pic/dislike-hilite.svg",
-  error: "pic/like-error.svg",
-  normal: "pic/like-normal.svg",
-  star: "pic/star-hilite.svg",
-  up: "pic/like-hilite.svg",
-}
 let upFolderId, downFolderId, starFolderId;
 
 // Initialisation – create three folders
@@ -41,43 +36,45 @@ async function ensureReady() {
   await readyPromise;
 }
 
-const getCurrentTab = () =>
-  browser.tabs.query({ active: true, currentWindow: true }).then(([x]) => x);
-
-// Get the current state for a URL: { category, bookmarkId }
-async function getBookmarkCategory(url) {
+// Get the current state for a URL: { folder, bookmarkId }
+async function getBookmarkFolder(url) {
   await ensureReady();
   let bookmarks;
   try {
     bookmarks = await browser.bookmarks.search({ url });
   } catch {
     // Couldn't fet bookmarks (a protected page?).
-    return { category: 'error', bookmarkId: null };
+    return null;
   }
   // Is paged bookmarked in 👍, or 👎?
-  for (const [name, id] of [['up', upFolderId], ['down', downFolderId]]) {
+  for (const [name, id] of [['👍', upFolderId], ['👎', downFolderId]]) {
     const found = bookmarks.find(({ parentId }) => parentId === id);
     if (found) {
-      return { category: name, bookmarkId: found.id };
+      return { folder: name, bookmarkId: found.id };
     }
   }
   // Page has at least one bookmark elsewhere.
   if (bookmarks.length > 0) {
     const [{ id }] = bookmarks;
-    return { category: "star", bookmarkId: id };
+    return { folder: '⭐', bookmarkId: id };
   }
   // Page not bookmarked at all.
-  return { category: null, bookmarkId: null };
+  return { folder: '', bookmarkId: null };
 }
 
 // Get state & update button icon
 async function getState(tabId, url) {
-  const state = await getBookmarkCategory(url);
-  const [title, popup] = state.category === 'error'
-    ? ["Unsupported Page", ""] : [null, null];
-  await browser.action.setTitle({ tabId, title });
+  const state = await getBookmarkFolder(url);
+
+  const { folder } = state ? state : {}
+
+  const [path, title, popup] =
+        !state  ? [...errorIcon, ""]  : // error
+        !folder ? [...defaultIcon, null]
+                : [...folderIcons[folder].hilite, null];
+  await browser.action.setTitle({ tabId, title }); // button hover text
   await browser.action.setPopup({ tabId, popup }); // enable/disable popup
-  await browser.action.setIcon ({ tabId, path: iconPaths[state.category] });
+  await browser.action.setIcon ({ tabId, path  });
   return state;
 }
 
@@ -85,17 +82,17 @@ async function getState(tabId, url) {
 browser.runtime.onMessage.addListener(async (msg, sender) => {
   if (msg.type === "getState") {
     const tab = await getCurrentTab();
-    if (!tab || !tab.url) return { category: null, bookmarkId: null };
+    if (!tab || !tab.url) return { folder: null, bookmarkId: null };
     return await getState(tab.id, tab.url);
   }
-  if (msg.type === "setCategory") {
-    const { category } = msg;
+  if (msg.type === "setFolder") {
+    const { folder } = msg;
     const { id, url, title } = await getCurrentTab();
     const state = await getState(id, url);
-    const targetFolder = category === "up" ? upFolderId :
-                         category === "down" ? downFolderId : starFolderId;
+    const targetFolder = folder === '👍' ? upFolderId :
+                         folder === '👎' ? downFolderId : starFolderId;
 
-    if (state.category === category) {
+    if (state.folder === folder) {
       // Active – remove the bookmark
       if (state.bookmarkId) {
         await browser.bookmarks.remove(state.bookmarkId);

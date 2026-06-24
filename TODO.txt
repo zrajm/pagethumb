@@ -1,6 +1,9 @@
 -*- org -*-
 #+TODO: TODO | DONE CANT!
 
+* TODO Minimize number of events received
+  Currently there unexpectedly many e
+* TODO Strip youtube playlist id off before showing con
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
