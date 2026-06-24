@@ -3,7 +3,7 @@
 
 import { getCurrentTab, errorIcon, defaultIcon, folderIcons } from './shared.js'
 
-const UNFILED = "unfiled_____"
+const UNFILED = 'unfiled_____'
 let upFolderId, downFolderId, starFolderId
 
 function getYoutubeVideoId(url) {
@@ -29,24 +29,24 @@ function normalizeYoutubeUrl(url) {
 // Initialisation – create three folders
 let readyPromise = (async () => {
   // 👍 folder
-  let results = await browser.bookmarks.search({ title: "👍" })
-  upFolderId = results.find(f => f.type === "folder" && f.parentId === UNFILED)?.id
+  let results = await browser.bookmarks.search({ title: '👍' })
+  upFolderId = results.find(f => f.type === 'folder' && f.parentId === UNFILED)?.id
   if (!upFolderId) {
-    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "👍", type: "folder" })
+    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: '👍', type: 'folder' })
     upFolderId = folder.id
   }
   // 👎 folder
-  results = await browser.bookmarks.search({ title: "👎" })
-  downFolderId = results.find(f => f.type === "folder" && f.parentId === UNFILED)?.id
+  results = await browser.bookmarks.search({ title: '👎' })
+  downFolderId = results.find(f => f.type === 'folder' && f.parentId === UNFILED)?.id
   if (!downFolderId) {
-    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "👎", type: "folder" })
+    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: '👎', type: 'folder' })
     downFolderId = folder.id
   }
   // ⭐ folder
-  results = await browser.bookmarks.search({ title: "⭐" })
-  starFolderId = results.find(f => f.type === "folder" && f.parentId === UNFILED)?.id
+  results = await browser.bookmarks.search({ title: '⭐' })
+  starFolderId = results.find(f => f.type === 'folder' && f.parentId === UNFILED)?.id
   if (!starFolderId) {
-    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: "⭐", type: "folder" })
+    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: '⭐', type: 'folder' })
     starFolderId = folder.id
   }
 })()
@@ -92,7 +92,7 @@ async function getState(tabId, url) {
   const { folder } = state ?? {}
   const count = state?.bookmarkIds?.length ?? 0
   const [path, title, popup] =
-        !state  ? [...errorIcon, ""]  : // error
+        !state  ? [...errorIcon, '']  : // error
         !folder ? [defaultIcon[0], null, null]
                 : [folderIcons[folder].hilite[0], null, null]
   await browser.action.setTitle({              // button hover text
@@ -111,14 +111,14 @@ async function getState(tabId, url) {
 
 // ---- Handle messages from popup ----
 browser.runtime.onMessage.addListener(async (msg, sender) => {
-  if (msg.type === "getState") {
+  if (msg.type === 'getState') {
     const tab = await getCurrentTab()
     if (!tab || !tab.url) {
       return { folder: null, bookmarkIds: [] }
     }
     return await getState(tab.id, tab.url)
   }
-  if (msg.type === "setFolder") {
+  if (msg.type === 'setFolder') {
     const { folder } = msg
     const { id, url, title } = await getCurrentTab()
     const state = await getState(id, url)
@@ -153,7 +153,7 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
 
 // When tab was updated
 browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {
-  if (status !== "complete") { return }
+  if (status !== 'complete') { return }
   getState(tabId, url)
 })
 browser.tabs.onActivated.addListener(({ tabId }) => {

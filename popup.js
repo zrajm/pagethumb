@@ -7,16 +7,16 @@ import { getCurrentTab, folderIcons } from './shared.js'
 async function initPopup() {
   const tab = await getCurrentTab()
   if (!tab || !tab.url) {
-    document.body.textContent = "No active tab"
+    document.body.textContent = 'No active tab'
     return
   }
 
-  let state = await browser.runtime.sendMessage({ type: "getState" })
+  let state = await browser.runtime.sendMessage({ type: 'getState' })
 
   // Autolike: For unbookmarked pages, save in 👍 as soon as user opens popup.
   if (!state.folder) {
-    await browser.runtime.sendMessage({ type: "setFolder", folder: '👍' })
-    state = await browser.runtime.sendMessage({ type: "getState" })
+    await browser.runtime.sendMessage({ type: 'setFolder', folder: '👍' })
+    state = await browser.runtime.sendMessage({ type: 'getState' })
   }
   // Helper to set button image and tooltip
   function setupButton(folder) {
@@ -25,14 +25,14 @@ async function initPopup() {
     const btn = document.getElementById(`btn-${name}`)
     // Set image src, and button's loot tip.
     ;[img.src, btn.title] = state.folder === folder ? hilite : normal
-    btn.addEventListener("click", async () => {
-      await browser.runtime.sendMessage({ type: "setFolder", folder })
+    btn.addEventListener('click', async () => {
+      await browser.runtime.sendMessage({ type: 'setFolder', folder })
       window.close() // close popup after action
     })
   }
   setupButton('👍')
-  setupButton("👎")
-  setupButton("⭐")
+  setupButton('👎')
+  setupButton('⭐')
 }
 initPopup()
 
