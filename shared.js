@@ -2,20 +2,20 @@
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
 export const getCurrentTab = () =>
-  browser.tabs.query({ active: true, currentWindow: true }).then(([x]) => x);
+  browser.tabs.query({ active: true, currentWindow: true }).then(([x]) => x)
 
-export const errorIcon   = ["pic/like-error.svg", "Unsupported Page"];
-export const defaultIcon = ["pic/like-normal.svg", "Like page"];
+export const errorIcon   = ["pic/like-error.svg", "Unsupported Page"]
+export const defaultIcon = ["pic/like-normal.svg", "Like page"]
 export const folderIcons = {
     '👍': {
         name: "up",
         normal: ["pic/like-normal.svg", "Like page"],
-        hilite: ["pic/like-hilite.svg", "Remove Like"],
+        hilite: ["pic/like-hilite.svg", "Remove like"],
     },
     '👎': {
         name: "down",
         normal: ["pic/dislike-normal.svg", "Dislike page"],
-        hilite: ["pic/dislike-hilite.svg", "Remove Dislike"],
+        hilite: ["pic/dislike-hilite.svg", "Remove dislike"],
     },
     "⭐": {
         name: "star",
