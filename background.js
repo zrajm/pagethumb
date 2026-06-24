@@ -6,6 +6,26 @@ import { getCurrentTab, errorIcon, defaultIcon, folderIcons } from './shared.js'
 const UNFILED = "unfiled_____";
 let upFolderId, downFolderId, starFolderId;
 
+function getYoutubeVideoId(url) {
+  try {
+    const url = new URL(url);
+    if (!url.hostname.includes('youtube.com')) return null;
+    const v = url.searchParams.get('v');       // video id parameter
+    if (v) return v;
+    // Handle /shorts/ paths (convert to watch?v=ID)
+    const match = url.pathname.match(/^\/shorts\/([^/?]+)/);
+    if (match) return match[1];
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function normalizeYoutubeUrl(url) {
+  const id = getYoutubeVideoId(url);
+  return id ? `https://www.youtube.com/watch?v=${id}` : url;
+}
+
 // Initialisation – create three folders
 let readyPromise = (async () => {
   // 👍 folder
@@ -39,11 +59,15 @@ async function ensureReady() {
 // Get the current state for a URL: { folder, bookmarkId }
 async function getBookmarkFolder(url) {
   await ensureReady();
+
+  // Normalize the URL (YouTube videos become canonical)
+  const searchUrl = normalizeYoutubeUrl(url);
+
   let bookmarks;
   try {
-    bookmarks = await browser.bookmarks.search({ url });
+    bookmarks = await browser.bookmarks.search({ url: searchUrl });
   } catch {
-    // Couldn't fet bookmarks (a protected page?).
+    // Couldn't fetch bookmarks (a protected page?)
     return null;
   }
   // Is paged bookmarked in 👍, or 👎?
@@ -103,11 +127,12 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
         // Move existing bookmark to target folder
         await browser.bookmarks.move(state.bookmarkId, { parentId: targetFolder });
       } else {
-        // No bookmark at all – create new
+        // No bookmark at all – create new, using normalized URL for YouTube
+        const bookmarkUrl = normalizeYoutubeUrl(url);
         await browser.bookmarks.create({
           parentId: targetFolder,
           title: title ?? url,
-          url
+          url: bookmarkUrl
         });
       }
     }
