@@ -89,9 +89,7 @@ async function getBookmarkFolder(url) {
 // Get state & update button icon
 async function getState(tabId, url) {
   const state = await getBookmarkFolder(url);
-
-  const { folder } = state ? state : {}
-
+  const { folder } = state ?? {}
   const [path, title, popup] =
         !state  ? [...errorIcon, ""]  : // error
         !folder ? [...defaultIcon, null]
