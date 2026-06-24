@@ -18,7 +18,6 @@ async function initPopup() {
     await browser.runtime.sendMessage({ type: "setFolder", folder: '👍' });
     state = await browser.runtime.sendMessage({ type: "getState" });
   }
-
   // Helper to set button image and tooltip
   function setupButton(folder) {
     const { name, normal, hilite } = folderIcons[folder]
@@ -31,7 +30,6 @@ async function initPopup() {
       window.close(); // close popup after action
     });
   }
-
   setupButton('👍');
   setupButton("👎");
   setupButton("⭐");

@@ -1,9 +1,26 @@
 -*- org -*-
 #+TODO: TODO | DONE CANT!
 
+* TODO Write a README
+  Describe the purpose.
+  Should note how to remove the URL bar bookmark star. (Which apparently
+  require userChrome.)
+* TODO Name extension? 'Thumbcrumb Bookmarks'?
+  Because it leaves a 'thumb crumb' to your future self that you have visited a
+  page before, and how you liked it then.
+* TODO Undo on delete
+  I.e. if immediately restoring a deleted bookmark, restore original creation
+  date, tags and title.
+* TODO On move: Merge if there are multiple bookmarks
+  This should combine tags, and keep the creation date of the oldest bookmark.
+* TODO Get extension button to update on extension reload
+* TODO Speed up updating of button states when moving (multiple) bookmarks
 * TODO Minimize number of events received
-  Currently there unexpectedly many e
-* TODO Strip youtube playlist id off before showing con
+  Currently there unexpectedly many events happening. We should only react to
+  the relevant one. Can we filter out the other?
+* DONE Normalize Youtube URLs before bookmarking/comparing
+  CLOSED: [2026-06-24 Wed 05:51]
+  This is so only the video ID matter, not any playlist ID etc.
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
@@ -24,4 +41,3 @@
 * CANT Display bookmark menu?
   CLOSED: [2026-06-22 Mon 07:26]
 * [eof]
-

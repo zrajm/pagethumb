@@ -56,47 +56,57 @@ async function ensureReady() {
   await readyPromise;
 }
 
-// Get the current state for a URL: { folder, bookmarkId }
+// Get the current state for a URL: { folder, bookmarkIds }
 async function getBookmarkFolder(url) {
   await ensureReady();
 
   // Normalize the URL (YouTube videos become canonical)
-  const searchUrl = normalizeYoutubeUrl(url);
+  url = normalizeYoutubeUrl(url);
 
   let bookmarks;
   try {
-    bookmarks = await browser.bookmarks.search({ url: searchUrl });
+    bookmarks = await browser.bookmarks.search({ url });
   } catch {
     // Couldn't fetch bookmarks (a protected page?)
     return null;
   }
-  // Is paged bookmarked in 👍, or 👎?
+  const bookmarkIds = bookmarks.map(b => b.id);
+
+  // Is page bookmarked in 👍, or 👎?
   for (const [name, id] of [['👍', upFolderId], ['👎', downFolderId]]) {
-    const found = bookmarks.find(({ parentId }) => parentId === id);
-    if (found) {
-      return { folder: name, bookmarkId: found.id };
+    if (bookmarks.some(({ parentId }) => parentId === id)) {
+      return { folder: name, bookmarkIds };
     }
   }
   // Page has at least one bookmark elsewhere.
   if (bookmarks.length > 0) {
-    const [{ id }] = bookmarks;
-    return { folder: '⭐', bookmarkId: id };
+    return { folder: '⭐', bookmarkIds };
   }
   // Page not bookmarked at all.
-  return { folder: '', bookmarkId: null };
+  return { folder: '', bookmarkIds };
 }
 
-// Get state & update button icon
+// Get state & update button icon and badge
 async function getState(tabId, url) {
   const state = await getBookmarkFolder(url);
-  const { folder } = state ?? {}
+  const { folder } = state ?? {};
+  const count = state?.bookmarkIds?.length ?? 0;
   const [path, title, popup] =
         !state  ? [...errorIcon, ""]  : // error
-        !folder ? [...defaultIcon, null]
-                : [...folderIcons[folder].hilite, null];
-  await browser.action.setTitle({ tabId, title }); // button hover text
+        !folder ? [defaultIcon[0], null, null]
+                : [folderIcons[folder].hilite[0], null, null];
+  //await browser.action.setTitle({ tabId, title }); // button hover text
   await browser.action.setPopup({ tabId, popup }); // enable/disable popup
   await browser.action.setIcon ({ tabId, path  });
+
+  // Show badge if there is more than one bookmark
+  await browser.action.setBadgeTextColor({ tabId, color: 'white' });
+  await browser.action.setBadgeBackgroundColor({ tabId, color: '#a00' });
+  await browser.action.setBadgeText({ tabId, text: `${count > 1 ? count : ''}` });
+  await browser.action.setTitle({
+    tabId,
+    title: count > 1 ? 'Page has multiple bookmarks\nAll are moved/deleted together' : title
+  });
   return state;
 }
 
@@ -104,7 +114,9 @@ async function getState(tabId, url) {
 browser.runtime.onMessage.addListener(async (msg, sender) => {
   if (msg.type === "getState") {
     const tab = await getCurrentTab();
-    if (!tab || !tab.url) return { folder: null, bookmarkId: null };
+    if (!tab || !tab.url) {
+      return { folder: null, bookmarkIds: [] };
+    }
     return await getState(tab.id, tab.url);
   }
   if (msg.type === "setFolder") {
@@ -115,15 +127,17 @@ browser.runtime.onMessage.addListener(async (msg, sender) => {
                          folder === '👎' ? downFolderId : starFolderId;
 
     if (state.folder === folder) {
-      // Active – remove the bookmark
-      if (state.bookmarkId) {
-        await browser.bookmarks.remove(state.bookmarkId);
+      // Hilited button clicked, delete bookmark(s)
+      for (const bmId of state.bookmarkIds) {
+        await browser.bookmarks.remove(bmId);
       }
     } else {
-      // Inactive – move or create
-      if (state.bookmarkId) {
-        // Move existing bookmark to target folder
-        await browser.bookmarks.move(state.bookmarkId, { parentId: targetFolder });
+      // Normal button clicked, create or move
+      if (state.bookmarkIds.length > 0) {
+        // Move existing bookmark(s) to target folder
+        for (const bmId of state.bookmarkIds) {
+          await browser.bookmarks.move(bmId, { parentId: targetFolder });
+        }
       } else {
         // No bookmark at all – create new, using normalized URL for YouTube
         const bookmarkUrl = normalizeYoutubeUrl(url);
