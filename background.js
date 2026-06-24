@@ -9,12 +9,12 @@ let upFolderId, downFolderId, starFolderId;
 function getYoutubeVideoId(url) {
   try {
     const url = new URL(url);
-    if (!url.hostname.includes('youtube.com')) return null;
+    if (!url.hostname.includes('youtube.com')) { return null }
     const v = url.searchParams.get('v');       // video id parameter
-    if (v) return v;
+    if (v) { return v }
     // Handle /shorts/ paths (convert to watch?v=ID)
     const match = url.pathname.match(/^\/shorts\/([^/?]+)/);
-    if (match) return match[1];
+    if (match) { return match[1] }
     return null;
   } catch (_) {
     return null;

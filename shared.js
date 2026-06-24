@@ -24,5 +24,4 @@ export const folderIcons = {
     },
 }
 
-
 //EOF
