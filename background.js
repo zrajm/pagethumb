@@ -33,23 +33,20 @@ const normalizeUrl = url => {
   return url.href
 }
 
-// getBookmarkFolder(URL) -- Return `{ folder, bookmarkIds }`. name of extension
+// getBookmarkFolder(URL) -- Return `{ folder, bookmarks }`. name of extension
 // folder + list of all bookmarks IDs matching URL (= the bookmarks to modify).
 const getBookmarkFolder = (url) => Promise.resolve()
   .then(() => browser.bookmarks.search({ url: normalizeUrl(url) }))
   .then(bookmarks => {
     if (bookmarks.length === 0) {              // non-bookmarked page
-      return { folder: '', bookmarkIds: [] }
+      return { folder: '', bookmarks: [] }
     }
     let remain = CATEGORIES.size - 1
     for (const [folder, id] of CATEGORIES) {
       if (!remain || bookmarks.some(({ parentId }) => parentId === id)) {
         // a) Return first folder which contains a bookmark.
         // b) If none, return the last (catch-all) folder.
-        return {
-          folder,
-          bookmarkIds: bookmarks.map(x => x.id),
-        }
+        return { folder, bookmarks }
       }
       remain -= 1
     }
@@ -59,13 +56,22 @@ const getBookmarkFolder = (url) => Promise.resolve()
 // Get state & update button icon and badge.
 const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
   const { folder } = state ?? {}
-  const [path, title, popup] =
+  let [path, title, popup] =
         !state  ? [...errorIcon, '']  : // error
         !folder ? [defaultIcon[0], null, null]
                 : [folderIcons[folder].hilite[0], null, null]
 
-  // Make extension button reflect bookmark(s).
-  const count = state?.bookmarkIds?.length ?? 0
+  // Build mouseover text for extension button.
+  const count = state?.bookmarks?.length ?? 0
+  if (count > 0) {
+    title = 'Bookmarked on:' + state.bookmarks.map(x => x.dateAdded)
+      .sort((a, b) => b - a)
+      .map(x => '\n - ' + (new Date(x).toLocaleString(
+        undefined, { dateStyle: 'medium', timeStyle: 'short' }))).join('')
+    if (count > 1) {
+      title += `\nAll are moved/deleted together`
+    }
+  }
   return Promise.allSettled([
     browser.action.setPopup({ tabId, popup }), // enable/disable popup
     browser.action.setIcon({ tabId, path }),
@@ -73,9 +79,7 @@ const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
     browser.action.setBadgeTextColor({ tabId, color: 'white' }),
     browser.action.setBadgeBackgroundColor({ tabId, color: '#a00' }),
     browser.action.setBadgeText({ tabId, text: `${count > 1 ? count : ''}` }),
-    browser.action.setTitle({ tabId, title: count <= 1 ? title :
-      'Page has multiple bookmarks\nAll are moved/deleted together',
-    }),
+    browser.action.setTitle({ tabId, title }),
   ]).then(() => state)
 })
 
@@ -92,13 +96,13 @@ const setFolder = (folder) => getCurrentTab()
 
     // Hilited button clicked: Delete bookmark(s)
     if (state.folder === folder) {
-      return Promise.all(state.bookmarkIds.map(
-        id => browser.bookmarks.remove(id)))
+      return Promise.all(state.bookmarks.map(
+        ({ id }) => browser.bookmarks.remove(id)))
     }
     // Unhilited button clicked: Move existing bookmark(s) to target
-    if (state.bookmarkIds.length > 0) {
-      return Promise.all(state.bookmarkIds.map(
-        id => browser.bookmarks.move(id, { parentId: targetFolderId })))
+    if (state.bookmarks.length > 0) {
+      return Promise.all(state.bookmarks.map(
+        ({ id }) => browser.bookmarks.move(id, { parentId: targetFolderId })))
     }
     // Unhilited button clicked: None exsisting -- create new
     return browser.bookmarks.create({
