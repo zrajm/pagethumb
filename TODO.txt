@@ -1,29 +1,35 @@
 -*- org -*-
 #+TODO: TODO | DONE CANT!
 
-* TODO Write a README
-  Describe the purpose.
-  Should note how to remove the URL bar bookmark star. (Which apparently
-  require userChrome.)
-* TODO Name extension? 'Thumbcrumb Bookmarks'?
-  Because it leaves a 'thumb crumb' to your future self that you have visited a
-  page before, and how you liked it then.
+* TODO Normalize title (removing '(...)' at beginning of Youtube videos)
+* TODO Show additional metadata on hove
+  Date created, date modified, date for most recent visit, and number of visit.
 * TODO Undo on delete
   I.e. if immediately restoring a deleted bookmark, restore original creation
   date, tags and title.
 * TODO On move: Merge if there are multiple bookmarks
   This should combine tags, and keep the creation date of the oldest bookmark.
-* TODO Get extension button to update on extension reload
 * TODO Speed up updating of button states when moving (multiple) bookmarks
 * TODO Minimize number of events received
   Currently there unexpectedly many events happening. We should only react to
   the relevant one. Can we filter out the other?
-* DONE Normalize Youtube URLs before bookmarking/comparing
-  CLOSED: [2026-06-24 Wed 05:51]
-  This is so only the video ID matter, not any playlist ID etc.
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
+* DONE Write a README
+  CLOSED: [2026-06-25 Thu 20:16]
+  Describe the purpose.
+  Should note how to remove the URL bar bookmark star. (Which apparently
+  require userChrome.)
+* DONE Name extension? 'Thumbcrumb Bookmarks'?
+  CLOSED: [2026-06-25 Thu 20:16]
+  Because it leaves a 'thumb crumb' to your future self that you have visited a
+  page before, and how you liked it then.
+* DONE Get extension button to update on extension reload
+  CLOSED: [2026-06-25 Thu 20:14]
+* DONE Normalize Youtube URLs before bookmarking/comparing
+  CLOSED: [2026-06-24 Wed 05:51]
+  This is so only the video ID matter, not any playlist ID etc.
 * DONE popup.html should reference SVGs directly
   CLOSED: [2026-06-22 Mon 17:37]
 * DONE Clicking thumbs up (non-hilited) should like

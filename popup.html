@@ -8,34 +8,34 @@
       background: field;
       color: fieldtext;
   }
-  .menu {
+  #menu {
       display: flex;
       padding: 2px 4px;
       align-items: center;
       justify-content: center;
   }
-  .menu button {
+  #menu button {
       &:hover { background: #8886 }
       background: inherit; color: inherit;
       border: 0; border-radius: 4px;
       cursor: pointer;
       padding: 8px 10px;
   }
-  .menu button img {
+  #menu button img {
       display: block;
       width: 20px;
       height: 20px;
   }
 </style>
-<div class="menu">
-  <button id="btn-up" title="Like page">
-    <img id="img-up" src="pic/like-normal.svg" alt="👍">
+<div id="menu">
+  <button id="👍" title="Like page">
+    <img src="pic/like-normal.svg">
   </button>
-  <button id="btn-down" title="Dislike page">
-    <img id="img-down" src="pic/dislike-normal.svg" alt="👎">
+  <button id="👎" title="Dislike page">
+    <img src="pic/dislike-normal.svg">
   </button>
-  <button id="btn-star" title="Bookmark page">
-    <img id="img-star" src="pic/star-normal.svg" alt="⭐">
+  <button id="⭐" title="Bookmark page">
+    <img src="pic/star-normal.svg">
   </button>
 </div>
 <script type="module" src="popup.js"></script>

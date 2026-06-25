@@ -4,7 +4,18 @@
 import { getCurrentTab, errorIcon, defaultIcon, folderIcons } from './shared.js'
 
 const UNFILED = 'unfiled_____'
-let upFolderId, downFolderId, starFolderId
+
+// Key = category name, value = bookmark folder ID.
+let CATEGORIES = new Map([['👍'], ['👎'], ['⭐']])
+
+// Create bookmark folders (if needed) & cache their IDs in CATEGORIES.
+const setupBookmarkFolders = () => Promise.all(
+  [...CATEGORIES.keys()].map(title =>
+    browser.bookmarks.search({ title })
+      .then(matches =>
+        matches.find(x => x.type === 'folder' && x.parentId === UNFILED)
+          ?? browser.bookmarks.create({ title, type: 'folder', parentId: UNFILED }))
+      .then(({ id, title }) => CATEGORIES.set(title, id))))
 
 const normalizeUrl = url => {
   try { url = new URL(url) } catch { return url }
@@ -22,141 +33,113 @@ const normalizeUrl = url => {
   return url.href
 }
 
-// Initialisation – create three folders
-let readyPromise = (async () => {
-  // 👍 folder
-  let results = await browser.bookmarks.search({ title: '👍' })
-  upFolderId = results.find(f => f.type === 'folder' && f.parentId === UNFILED)?.id
-  if (!upFolderId) {
-    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: '👍', type: 'folder' })
-    upFolderId = folder.id
-  }
-  // 👎 folder
-  results = await browser.bookmarks.search({ title: '👎' })
-  downFolderId = results.find(f => f.type === 'folder' && f.parentId === UNFILED)?.id
-  if (!downFolderId) {
-    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: '👎', type: 'folder' })
-    downFolderId = folder.id
-  }
-  // ⭐ folder
-  results = await browser.bookmarks.search({ title: '⭐' })
-  starFolderId = results.find(f => f.type === 'folder' && f.parentId === UNFILED)?.id
-  if (!starFolderId) {
-    const folder = await browser.bookmarks.create({ parentId: UNFILED, title: '⭐', type: 'folder' })
-    starFolderId = folder.id
-  }
-})()
-
-// Utility: wait for folders
-async function ensureReady() {
-  await readyPromise
-}
-
-// Get the current state for a URL: { folder, bookmarkIds }
-async function getBookmarkFolder(url) {
-  await ensureReady()
-  let bookmarks
-  try {
-    bookmarks = await browser.bookmarks.search({ normalizeUrl(url) })
-  } catch { return null }
-  const bookmarkIds = bookmarks.map(b => b.id)
-
-  // Is page bookmarked in 👍, or 👎?
-  for (const [name, id] of [['👍', upFolderId], ['👎', downFolderId]]) {
-    if (bookmarks.some(({ parentId }) => parentId === id)) {
-      return { folder: name, bookmarkIds }
+// getBookmarkFolder(URL) -- Return `{ folder, bookmarkIds }`. name of extension
+// folder + list of all bookmarks IDs matching URL (= the bookmarks to modify).
+const getBookmarkFolder = (url) => Promise.resolve()
+  .then(() => browser.bookmarks.search({ url: normalizeUrl(url) }))
+  .then(bookmarks => {
+    if (bookmarks.length === 0) {              // non-bookmarked page
+      return { folder: '', bookmarkIds: [] }
     }
-  }
-  // Page has at least one bookmark elsewhere.
-  if (bookmarks.length > 0) {
-    return { folder: '⭐', bookmarkIds }
-  }
-  // Page not bookmarked at all.
-  return { folder: '', bookmarkIds }
-}
+    let remain = CATEGORIES.size - 1
+    for (const [folder, id] of CATEGORIES) {
+      if (!remain || bookmarks.some(({ parentId }) => parentId === id)) {
+        // a) Return first folder which contains a bookmark.
+        // b) If none, return the last (catch-all) folder.
+        return {
+          folder,
+          bookmarkIds: bookmarks.map(x => x.id),
+        }
+      }
+      remain -= 1
+    }
+  })
+  .catch(() => null)                           // bookmark API unavailable
 
-// Get state & update button icon and badge
-async function getState(tabId, url) {
-  const state = await getBookmarkFolder(url)
+// Get state & update button icon and badge.
+const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
   const { folder } = state ?? {}
-  const count = state?.bookmarkIds?.length ?? 0
   const [path, title, popup] =
         !state  ? [...errorIcon, '']  : // error
         !folder ? [defaultIcon[0], null, null]
                 : [folderIcons[folder].hilite[0], null, null]
-  await browser.action.setTitle({              // button hover text
-    tabId,
-    title: count > 1 ? 'Page has multiple bookmarks\nAll are moved/deleted together' : title
-  })
-  await browser.action.setPopup({ tabId, popup }) // enable/disable popup
-  await browser.action.setIcon ({ tabId, path  })
 
-  // Show badge if there is more than one bookmark
-  await browser.action.setBadgeTextColor({ tabId, color: 'white' })
-  await browser.action.setBadgeBackgroundColor({ tabId, color: '#a00' })
-  await browser.action.setBadgeText({ tabId, text: `${count > 1 ? count : ''}` })
-  return state
-}
+  // Make extension button reflect bookmark(s).
+  const count = state?.bookmarkIds?.length ?? 0
+  return Promise.allSettled([
+    browser.action.setPopup({ tabId, popup }), // enable/disable popup
+    browser.action.setIcon({ tabId, path }),
+    // Show badge if there is more than one bookmark for this page.
+    browser.action.setBadgeTextColor({ tabId, color: 'white' }),
+    browser.action.setBadgeBackgroundColor({ tabId, color: '#a00' }),
+    browser.action.setBadgeText({ tabId, text: `${count > 1 ? count : ''}` }),
+    browser.action.setTitle({ tabId, title: count <= 1 ? title :
+      'Page has multiple bookmarks\nAll are moved/deleted together',
+    }),
+  ]).then(() => state)
+})
 
-// ---- Handle messages from popup ----
-browser.runtime.onMessage.addListener(async (msg, sender) => {
-  if (msg.type === 'getState') {
-    const tab = await getCurrentTab()
-    if (!tab || !tab.url) {
-      return { folder: null, bookmarkIds: [] }
-    }
-    return await getState(tab.id, tab.url)
-  }
-  if (msg.type === 'setFolder') {
-    const { folder } = msg
-    const { id, url, title } = await getCurrentTab()
-    const state = await getState(id, url)
-    const targetFolder = folder === '👍' ? upFolderId :
-                         folder === '👎' ? downFolderId : starFolderId
+const getFolder = () => getCurrentTab()
+  .then(tab => getBookmarkFolder(tab?.url))
+  .then(({ folder }) => folder || null)
 
+const setFolder = (folder) => getCurrentTab()
+  .then(({ id, url, title }) =>
+    getState(id, url).then(state => ({ tab: { id, url, title }, state })))
+  .then(({ tab, state }) => {
+    const targetFolderId = CATEGORIES.get(folder)
+      ?? CATEGORIES.get([...CATEGORIES.keys()].pop())
+
+    // Hilited button clicked: Delete bookmark(s)
     if (state.folder === folder) {
-      // Hilited button clicked, delete bookmark(s)
-      for (const bmId of state.bookmarkIds) {
-        await browser.bookmarks.remove(bmId)
-      }
-    } else {
-      // Normal button clicked, create or move
-      if (state.bookmarkIds.length > 0) {
-        // Move existing bookmark(s) to target folder
-        for (const bmId of state.bookmarkIds) {
-          await browser.bookmarks.move(bmId, { parentId: targetFolder })
-        }
-      } else {
-        // No bookmark at all – create new, using normalized URL for YouTube
-        await browser.bookmarks.create({
-          parentId: targetFolder,
-          title: title ?? url,
-          url: normalizeUrl(url),
-        })
-      }
+      return Promise.all(state.bookmarkIds.map(
+        id => browser.bookmarks.remove(id)))
     }
-    return { success: true }
-  }
-})
-
-// When tab was updated
-browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {
-  if (status !== 'complete') { return }
-  getState(tabId, url)
-})
-browser.tabs.onActivated.addListener(({ tabId }) => {
-  browser.tabs.get(tabId).then(({ id, url }) => getState(id, url))
-})
+    // Unhilited button clicked: Move existing bookmark(s) to target
+    if (state.bookmarkIds.length > 0) {
+      return Promise.all(state.bookmarkIds.map(
+        id => browser.bookmarks.move(id, { parentId: targetFolderId })))
+    }
+    // Unhilited button clicked: None exsisting -- create new
+    return browser.bookmarks.create({
+      parentId: targetFolderId,
+      title   : tab.title ?? tab.url,
+      url     : normalizeUrl(tab.url),
+    })
+  }).then(() => folder)
 
 // When a bookmark change
-function refreshActiveTabIcon() {
+const refreshToolbarButton = () => {
   getCurrentTab().then(({ id, url }) => getState(id, url))
 }
-browser.bookmarks.onCreated.addListener(refreshActiveTabIcon)
-browser.bookmarks.onRemoved.addListener(refreshActiveTabIcon)
-browser.bookmarks.onMoved.addListener(refreshActiveTabIcon)
 
-// When extension is loaded
-getCurrentTab().then(({ id, url }) => getState(id, url))
+// Main.
+const main = () => {
+
+  // Receive 'getFolder' & 'setFolder' calls from popup.js.
+  browser.runtime.onMessage.addListener(([funcName, ...args]) =>
+    ({ getFolder, setFolder }[funcName](...args)))
+
+  // New page loaded in tab.
+  browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {
+    if (status !== 'complete') { return }
+    getState(tabId, url)
+  })
+
+  // Tab focused.
+  browser.tabs.onActivated.addListener(({ tabId }) => {
+    browser.tabs.get(tabId).then(({ id, url }) => getState(id, url))
+  })
+
+  // Bookmark was updated (by us or someone else).
+  browser.bookmarks.onCreated.addListener(refreshToolbarButton)
+  browser.bookmarks.onRemoved.addListener(refreshToolbarButton)
+  browser.bookmarks.onMoved.addListener(refreshToolbarButton)
+
+  // When extension is loaded.
+  getCurrentTab().then(({ id, url }) => getState(id, url))
+}
+
+setupBookmarkFolders().then(main)
 
 //EOF

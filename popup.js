@@ -3,37 +3,29 @@
 
 import { getCurrentTab, folderIcons } from './shared.js'
 
-// Load state and icons, then render
-async function initPopup() {
-  const tab = await getCurrentTab()
-  if (!tab || !tab.url) {
-    document.body.textContent = 'No active tab'
-    return
-  }
+// Get bookmark folder of current page.
+const getFolder = () => browser.runtime.sendMessage(['getFolder'])
 
-  let state = await browser.runtime.sendMessage({ type: 'getState' })
+// Move current page to given bookmark folder.
+const setFolder = folder => browser.runtime.sendMessage(['setFolder', folder])
 
-  // Autolike: For unbookmarked pages, save in 👍 as soon as user opens popup.
-  if (!state.folder) {
-    await browser.runtime.sendMessage({ type: 'setFolder', folder: '👍' })
-    state = await browser.runtime.sendMessage({ type: 'getState' })
-  }
-  // Helper to set button image and tooltip
-  function setupButton(folder) {
-    const { name, normal, hilite } = folderIcons[folder]
-    const img = document.getElementById(`img-${name}`)
-    const btn = document.getElementById(`btn-${name}`)
-    // Set image src, and button's loot tip.
-    ;[img.src, btn.title] = state.folder === folder ? hilite : normal
-    btn.addEventListener('click', async () => {
-      await browser.runtime.sendMessage({ type: 'setFolder', folder })
-      window.close() // close popup after action
+getFolder()
+  .then(folder => folder ?? setFolder('👍'))   // set folder to 👍 if unset
+  .then(folder => {
+    document.querySelector('#menu').addEventListener('click', ({ target }) => {
+      const button = target.closest('button')
+      if (button) {
+        const folder = button.id
+        setFolder(folder)
+        window.close()
+      }
     })
-  }
-  setupButton('👍')
-  setupButton('👎')
-  setupButton('⭐')
-}
-initPopup()
+    if (folder) {                              // hilite current folder button
+      const { hilite } = folderIcons[folder]
+      const  btn  = document.querySelector(`button#${folder}`)
+      const [img] = btn.children
+      ;[img.src, btn.title] = hilite           // set image & mouseover text
+    }
+  })
 
 //EOF
