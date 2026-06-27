@@ -1,0 +1,31 @@
+<!DOCTYPE html><!--*-js-indent-level:2;css-indent-offset:2-*-->
+<!-- Copyright (c) 2026 by zrajm. License: GPLv2 -->
+<meta charset=utf-8>
+<meta name=viewport content=width=device-width,initial-scale=1>
+<link rel=icon href=firefox-extension/pic/like-normal.svg>
+<link rel=stylesheet href=/baremark/www/main.css>
+<dialog id=noscript style="position:absolute;inset:0;margin:auto;padding:1em 2em;border:5px dashed #ff0a;border-radius:1rem;font:bold 2em sans;color:#ff0a;background:#600;box-shadow:0 0 0 5px #600,0 0 0 999px #0008, 0 5px 10px #000" open><script>noscript.close()</script>Javascript needed.</dialog>
+<main></main>
+<footer>© 2026 by zrajm, Uppsala.</footer>
+<script type=module>
+  import '/baremark/baremark.js'
+  import '/baremark/addon/meta.js'
+  import '/baremark/addon/table.js'
+  import '/baremark/addon/toc.js'
+  fetch('README.md').then(x => x.text()).then(md => {
+    const html = baremark(md)
+    document.title = baremark.meta.title ?? '[MISSING TITLE]'
+    document.documentElement.lang = 'en-GB'
+    document.querySelector('main').innerHTML =
+      `<h1>${baremark.meta.title}</h1><div class=docs>${html}</div>`
+
+    // If page finished redrawing, and is at top of page (= user hasn't
+    // scrolled down), jump #hash fragment in URL (if there is one).
+    setTimeout(() => {
+      if (location.hash && scrollY === 0) {
+        location.href = location.hash
+      }
+    }, 0)
+  })
+</script>
+<!--[eof]-->
