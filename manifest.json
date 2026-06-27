@@ -2,15 +2,24 @@
   "manifest_version": 3,
   "name": "Pagethumb",
   "version": "0.2",
+  "browser_specific_settings": {
+    "gecko": {
+      "update_url": "https://zrajm.org/pagethumb/updates.json",
+      "id": "pagethumb@zrajm.org",
+      "data_collection_permissions": {
+        "required": ["bookmarksInfo"]
+      }
+    }
+  },
   "description": "Like/dislike pages, storing vote as a boomark.",
   "icons": {
     "48": "pic/like-hilite.svg"
   },
   "permissions": ["bookmarks", "tabs", "activeTab"],
-    "background": {
-        "type": "module",
-        "scripts": ["background.js"]
-    },
+  "background": {
+    "type": "module",
+    "scripts": ["background.js"]
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
