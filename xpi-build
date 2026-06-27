@@ -1,6 +1,7 @@
 #!/bin/dash
 
 # See: https://zrajm.org/pagethumb/
-zip -r pagethumb.xpi * -x'*~' -x'*.xpi' -x"${0##*/}"
+cd ${0%/*}/firefox-extension || exit 5
+zip -r ../pagethumb.xpi * -x'*~' -x'*.xpi' -x"${0##*/}"
 
 #EOF
