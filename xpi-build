@@ -1,0 +1,6 @@
+#!/bin/dash
+
+# See: https://zrajm.org/pagethumb/
+zip -r pagethumb.xpi * -x'*~' -x'*.xpi' -x"${0##*/}"
+
+#EOF
