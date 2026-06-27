@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Like Page",
-  "version": "1.0",
-  "description": "Like, dislike, or bookmark a page.",
+  "name": "Pagethumb",
+  "version": "0.2",
+  "description": "Like/dislike pages, storing vote as a boomark.",
   "icons": {
     "48": "pic/like-hilite.svg"
   },

@@ -1,14 +1,16 @@
-# Thumbcrumb Bookmarks
+# Pagethumb
 
-This is a Firefox extension.
+Pagethumb is a bookmark/rating extension for Firefox. It'll give you a thumbs
+up / thumbs down symbol in the navigation mark, allowing you note whether you
+like/dislike. On later visits to the same page you'll be able to immediately
+see your previous rating. -- Think of this as personal like/dislike feature,
+but for the web at large. You likes are not shared with anybody (but your own
+future self).
 
-I'll give you a thumbs up/thumbs down symbol in he navigation bar. Whenever you
-visit a page you've visited before you'll be able to see whether you've liked
-or disliked it on a previous visit.
-
-Internally Thumbcrumb uses bookmarks to keep track of this information. A page
-is bookmarked in the folder '👍' if you like it, or '👎' if you dislike it. If
-a page bookmarked, but not in any of these categories it'll be marked as '⭐'.
+Internally Pagethumb stores likes/dislikes as bookmarks (meaning that they'll
+automatically sync between your devices when your bookmarks do). A page a liked
+page is bookmarked in the folder '👍', and a disliked page in '👎'. If a page
+bookmarked, but not in any of these categories it'll show up as '⭐'.
 
 
 A Confusion of Bookmarks

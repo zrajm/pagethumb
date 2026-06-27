@@ -14,6 +14,8 @@
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
+* DONE Better name 'Pagethumb'
+  CLOSED: [2026-06-27 Sat 14:56]
 * DONE Show additional metadata on hover
   CLOSED: [2026-06-25 Thu 22:09]
   Date created, date modified, date for most recent visit, and number of visit.
