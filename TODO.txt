@@ -1,6 +1,9 @@
 -*- org -*-
 #+TODO: TODO | DONE CANT(!)
 
+* TODO Add a link to web page from zrajm.org?
+* TODO Add the Mozilla signed extension as a release
+  Also link to it from the web page.
 * TODO Normalize title (removing '(...)' at beginning of Youtube videos)
 * TODO Undo on delete
   I.e. if immediately restoring a deleted bookmark, restore original creation
