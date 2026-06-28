@@ -1,0 +1,13 @@
+{
+  "addons": {
+    "pagethumb@zrajm.org": {
+      "updates": [
+        {
+          "version": "0.2",
+          "update_link": "https://zrajm.org/pagethumb/releases/pagethumb-0.2.xpi",
+          "update_hash": "sha256:2d68b591226394416ff1b5393c1db6d1016f4db904a86dfa03e1b8778d472e67"
+        }
+      ]
+    }
+  }
+}
