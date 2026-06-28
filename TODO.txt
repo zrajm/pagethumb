@@ -2,8 +2,6 @@
 #+TODO: TODO | DONE CANT(!)
 
 * TODO Add a link to web page from zrajm.org?
-* TODO Add the Mozilla signed extension as a release
-  Also link to it from the web page.
 * TODO Normalize title (removing '(...)' at beginning of Youtube videos)
 * TODO Undo on delete
   I.e. if immediately restoring a deleted bookmark, restore original creation
@@ -17,6 +15,9 @@
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
+* DONE Add the Mozilla signed extension as a release
+  CLOSED: [2026-06-28 Sun 14:02]
+  Also link to it from the web page.
 * DONE Better name 'Pagethumb'
   CLOSED: [2026-06-27 Sat 14:56]
 * DONE Show additional metadata on hover
