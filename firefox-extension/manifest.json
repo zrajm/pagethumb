@@ -7,7 +7,9 @@
       "update_url": "https://zrajm.org/pagethumb/updates.json",
       "id": "pagethumb@zrajm.org",
       "data_collection_permissions": {
-        "required": ["bookmarksInfo"]
+        "required": [
+          "bookmarksInfo"
+        ]
       }
     }
   },
@@ -15,10 +17,16 @@
   "icons": {
     "48": "pic/like-hilite.svg"
   },
-  "permissions": ["bookmarks", "tabs", "activeTab"],
+  "permissions": [
+    "bookmarks",
+    "tabs",
+    "activeTab"
+  ],
   "background": {
     "type": "module",
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
   "action": {
     "default_popup": "popup.html",
