@@ -9,17 +9,17 @@ const getFolder = () => browser.runtime.sendMessage(['getFolder'])
 // Move current page to given bookmark folder.
 const setFolder = folder => browser.runtime.sendMessage(['setFolder', folder])
 
+document.querySelector('#menu').addEventListener('click', ({ target }) => {
+  const button = target.closest('button')
+  if (button) {
+    setFolder(button.id)
+    window.close()
+  }
+})
+
 getFolder()
   .then(folder => folder ?? setFolder('👍'))   // set folder to 👍 if unset
   .then(folder => {
-    document.querySelector('#menu').addEventListener('click', ({ target }) => {
-      const button = target.closest('button')
-      if (button) {
-        const folder = button.id
-        setFolder(folder)
-        window.close()
-      }
-    })
     if (folder) {                              // hilite current folder button
       const { hilite } = folderIcons[folder]
       const  btn  = document.querySelector(`button#${folder}`)
