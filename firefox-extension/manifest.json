@@ -13,7 +13,7 @@
       }
     }
   },
-  "description": "Like/dislike pages, storing vote as a boomark.",
+  "description": "Like/dislike pages, storing vote as a bookmark.",
   "icons": {
     "48": "pic/like-hilite.svg"
   },
