@@ -1,30 +1,30 @@
 //-*- js-indent-level: 2 -*-
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
-import { getCurrentTab, folderIcons } from './shared.js'
+import { getCurrentTab, categoryIcons } from './shared.js'
 
-// Get bookmark folder of current page.
-const getFolder = () => browser.runtime.sendMessage(['getFolder'])
+// Get category of current page.
+const getCategory = () => browser.runtime.sendMessage(['getCategory'])
 
-// Move current page to given bookmark folder.
-const setFolder = folder => browser.runtime.sendMessage(['setFolder', folder])
+// Move current page to given category.
+const setCategory = x => browser.runtime.sendMessage(['setCategory', x])
 
 document.querySelector('#menu').addEventListener('click', ({ target }) => {
   const button = target.closest('button')
   if (button) {
-    setFolder(button.id)
+    setCategory(button.id)
     window.close()
   }
 })
 
-getFolder()
-  .then(folder => folder ?? setFolder('👍'))   // set folder to 👍 if unset
-  .then(folder => {
-    if (folder) {                              // hilite current folder button
-      const { hilite } = folderIcons[folder]
-      const  btn  = document.querySelector(`button#${folder}`)
+getCategory()
+  .then(category => category ?? setCategory('👍')) // set to 👍 if unset
+  .then(category => {
+    if (category) {                          // hilite current category button
+      const { hilite } = categoryIcons[category]
+      const  btn  = document.querySelector(`button#${category}`)
       const [img] = btn.children
-      ;[img.src, btn.title] = hilite           // set image & mouseover text
+      ;[img.src, btn.title] = hilite         // set image & mouseover text
     }
   })
 

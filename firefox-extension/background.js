@@ -1,7 +1,9 @@
 //-*- js-indent-level: 2 -*-
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
-import { getCurrentTab, errorIcon, defaultIcon, folderIcons } from './shared.js'
+import {
+  getCurrentTab, errorIcon, defaultIcon, categoryIcons
+} from './shared.js'
 
 const UNFILED = 'unfiled_____'
 
@@ -59,7 +61,7 @@ const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
   let [path, title, popup] =
         !state  ? [...errorIcon, '']  : // error
         !folder ? [defaultIcon[0], null, null]
-                : [folderIcons[folder].hilite[0], null, null]
+                : [categoryIcons[folder].hilite[0], null, null]
 
   // Build mouseover text for extension button.
   const count = state?.bookmarks?.length ?? 0
@@ -83,19 +85,19 @@ const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
   ]).then(() => state)
 })
 
-const getFolder = () => getCurrentTab()
+const getCategory = () => getCurrentTab()
   .then(tab => getBookmarkFolder(tab?.url))
   .then(({ folder }) => folder || null)
 
-const setFolder = (folder) => getCurrentTab()
+const setCategory = (category) => getCurrentTab()
   .then(({ id, url, title }) =>
     getState(id, url).then(state => ({ tab: { id, url, title }, state })))
   .then(({ tab, state }) => {
-    const targetFolderId = CATEGORIES.get(folder)
+    const targetFolderId = CATEGORIES.get(category)
       ?? CATEGORIES.get([...CATEGORIES.keys()].pop())
 
     // Hilited button clicked: Delete bookmark(s)
-    if (state.folder === folder) {
+    if (state.folder === category) {
       return Promise.all(state.bookmarks.map(
         ({ id }) => browser.bookmarks.remove(id)))
     }
@@ -110,7 +112,7 @@ const setFolder = (folder) => getCurrentTab()
       title   : tab.title ?? tab.url,
       url     : normalizeUrl(tab.url),
     })
-  }).then(() => folder)
+  }).then(() => category)
 
 // When a bookmark change
 const refreshToolbarButton = () => {
@@ -120,9 +122,9 @@ const refreshToolbarButton = () => {
 // Main.
 const main = () => {
 
-  // Receive 'getFolder' & 'setFolder' calls from popup.js.
+  // Receive 'getCategory' & 'setCategory' calls from popup.js.
   browser.runtime.onMessage.addListener(([funcName, ...args]) =>
-    ({ getFolder, setFolder }[funcName](...args)))
+    ({ getCategory, setCategory }[funcName](...args)))
 
   // New page loaded in tab.
   browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {

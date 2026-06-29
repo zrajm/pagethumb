@@ -6,7 +6,7 @@ export const getCurrentTab = () =>
 
 export const errorIcon   = ['pic/like-error.svg',  'Unsupported page']
 export const defaultIcon = ['pic/like-normal.svg', 'Like page']
-export const folderIcons = {
+export const categoryIcons = {
     '👍': {
         name: 'up',
         normal: ['pic/like-normal.svg', 'Like page'],
