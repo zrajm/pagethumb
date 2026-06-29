@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Pagethumb",
-  "version": "0.2",
+  "version": "0.3",
   "browser_specific_settings": {
     "gecko": {
       "update_url": "https://zrajm.org/pagethumb/updates.json",
       "id": "pagethumb@zrajm.org",
       "data_collection_permissions": {
-        "required": "none"
+        "required": [
+          "none"
+        ]
       }
     }
   },
@@ -16,9 +18,9 @@
     "48": "pic/like-hilite.svg"
   },
   "permissions": [
+    "activeTab",
     "bookmarks",
-    "tabs",
-    "activeTab"
+    "tabs"
   ],
   "background": {
     "type": "module",

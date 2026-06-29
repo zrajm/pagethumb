@@ -6,6 +6,11 @@
           "version": "0.2",
           "update_link": "https://zrajm.org/pagethumb/releases/pagethumb-0.2.xpi",
           "update_hash": "sha256:2d68b591226394416ff1b5393c1db6d1016f4db904a86dfa03e1b8778d472e67"
+        },
+        {
+          "version": "0.3",
+          "update_link": "https://zrajm.org/pagethumb/releases/pagethumb-0.3.xpi",
+          "update_hash": "sha256:79bfd64ac5202e65ab46ec69c684211db524ba3f491b4915b59e456c828ed9d1"
         }
       ]
     }
