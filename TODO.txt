@@ -8,13 +8,13 @@
   date, tags and title.
 * TODO On move: Merge if there are multiple bookmarks
   This should combine tags, and keep the creation date of the oldest bookmark.
-* TODO Speed up updating of button states when moving (multiple) bookmarks
-* TODO Minimize number of events received
-  Currently there unexpectedly many events happening. We should only react to
-  the relevant one. Can we filter out the other?
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
+* DONE Make sure popup state updates in timely fashion
+  CLOSED: [2026-06-29 Mon 23:41]
+* DONE Verify that we act on minimal number of events
+  CLOSED: [2026-06-29 Mon 23:40]
 * DONE Add how to remove bookmark & reader buttons to README
   CLOSED: [2026-06-29 Mon 15:50]
   The README should describe how to remove superfluous buttons in the URL

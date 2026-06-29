@@ -127,10 +127,6 @@ const closePopup = () => {
 // Main.
 const main = () => {
 
-  // Receive 'getCategory' & 'setCategory' calls from popup.js.
-  browser.runtime.onMessage.addListener(([funcName, ...args]) =>
-    ({ getCategory, setCategory }[funcName](...args)))
-
   // New page loaded in tab.
   browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {
     if (status !== 'complete') { return }
@@ -155,6 +151,15 @@ const main = () => {
   getCurrentTab().then(({ id, url }) => getState(id, url))
 }
 
-setupBookmarkFolders().then(main)
+// Make sure bookmark folders exist for all categories.
+const setupPromise = setupBookmarkFolders()
+
+// Listen for popup messages; wait for folders to exist before answering.
+browser.runtime.onMessage.addListener(([funcName, ...args]) =>
+  setupPromise.then(() => ({ getCategory, setCategory }[funcName](...args)))
+)
+
+// When category folders exist, run main.
+setupPromise.then(main)
 
 //EOF
