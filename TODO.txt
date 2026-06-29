@@ -15,6 +15,10 @@
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
+* DONE Add how to remove bookmark & reader buttons to README
+  CLOSED: [2026-06-29 Mon 15:50]
+  The README should describe how to remove superfluous buttons in the URL
+  field.
 * DONE Add the Mozilla signed extension as a release
   CLOSED: [2026-06-28 Sun 14:02]
   Also link to it from the web page.

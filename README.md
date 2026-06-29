@@ -12,13 +12,45 @@ Your likes are not shared with anybody (except your own future self).
 
 What Does It Look Like?
 -----------------------
-Here's the extension at work.
+Here’s the extension at work.
 
 ![default]\
 ![like]\
 ![dislike]\
 ![bookmark]\
 ![menu]
+
+
+Decluttering Firefox
+--------------------
+I find Firefox’s default appearance too cluttered, and creating this extension
+is part of trying to fix that for myself. Even better is using Pagethumb *plus*
+removing the bookmark (⭐) and reader buttons from Firefox’s URL field.—If you
+also want this, do the following:
+
+
+**Enable user customizations**
+
+1. Goto `about:config`
+2. Set `toolkit.legacyUserProfileCustomizations.stylesheets` to `true`.
+
+**Add the customizations you want**
+
+3. Put CSS into
+   `~/.mozilla/firefox/<RANDOM>.default-release/chrome/userChrome.css` (the
+   `<RANDOM>` part was decided by Firefox on its first startup, just use
+   whatever you find on your machine).
+
+~~~css
+/* Remove bookmark ⭐ button from URL field. */
+#star-button-box { display: none !important; }
+
+/* Remove 'reader' button from the URL field. */
+#reader-mode-button { display: none !important; }
+~~~
+
+That’s it! There’s a gazillion other things you can change too, but I’ll leave
+that as an exercise for the reader.
 
 
 A Confusion of Bookmarks
