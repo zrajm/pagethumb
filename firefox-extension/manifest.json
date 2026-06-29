@@ -7,9 +7,7 @@
       "update_url": "https://zrajm.org/pagethumb/updates.json",
       "id": "pagethumb@zrajm.org",
       "data_collection_permissions": {
-        "required": [
-          "bookmarksInfo"
-        ]
+        "required": "none"
       }
     }
   },
