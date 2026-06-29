@@ -9,6 +9,7 @@ const getCategory = () => browser.runtime.sendMessage(['getCategory'])
 // Move current page to given category.
 const setCategory = x => browser.runtime.sendMessage(['setCategory', x])
 
+// On click: Set category and close popup.
 document.querySelector('#menu').addEventListener('click', ({ target }) => {
   const button = target.closest('button')
   if (button) {
@@ -17,6 +18,12 @@ document.querySelector('#menu').addEventListener('click', ({ target }) => {
   }
 })
 
+// On background script message: Close popup.
+browser.runtime.onMessage.addListener(([funcName]) => {
+  if (funcName === 'closePopup') { window.close() }
+})
+
+// On popup open: Make sure category is set, and hilite corresponding button.
 getCategory()
   .then(category => category ?? setCategory('👍')) // set to 👍 if unset
   .then(category => {

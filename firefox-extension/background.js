@@ -119,6 +119,11 @@ const refreshToolbarButton = () => {
   getCurrentTab().then(({ id, url }) => getState(id, url))
 }
 
+// Tell popup to close itself.
+const closePopup = () => {
+  browser.runtime.sendMessage(['closePopup']).catch(() => {})
+}
+
 // Main.
 const main = () => {
 
@@ -129,12 +134,16 @@ const main = () => {
   // New page loaded in tab.
   browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {
     if (status !== 'complete') { return }
+    closePopup()
     getState(tabId, url)
   })
 
-  // Tab focused.
+  // Browser switched to new tab.
   browser.tabs.onActivated.addListener(({ tabId }) => {
-    browser.tabs.get(tabId).then(({ id, url }) => getState(id, url))
+    browser.tabs.get(tabId).then(({ id, url }) => {
+      closePopup()
+      getState(id, url)
+    })
   })
 
   // Bookmark was updated (by us or someone else).
