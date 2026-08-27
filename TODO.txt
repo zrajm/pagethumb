@@ -11,6 +11,17 @@
 * TODO Synchronize bookmarks with phone?
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
+* DONE Update button when single-page apps change the URL
+  CLOSED: [2026-08-27 Thu 14:38]
+  Youtube did not update the 👍 / 👎 in the extension button when navigating
+  between videos. This turned out to be because it's a single-page app (SPA)
+  and those use the History API's `pushState()` and `replaceState()` instead of
+  loading pages.
+
+  Pagethumb now ignores what *type* of event that caused the URL update and
+  instead react to all URL changes. This also makes the plugin slightly faster
+  at reacting to new URLs, as we no longer wait for a page to finish loading
+  before updated the extension button's state.
 * DONE Make sure popup state updates in timely fashion
   CLOSED: [2026-06-29 Mon 23:41]
 * DONE Verify that we act on minimal number of events

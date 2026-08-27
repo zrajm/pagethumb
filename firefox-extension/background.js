@@ -127,9 +127,9 @@ const closePopup = () => {
 // Main.
 const main = () => {
 
-  // New page loaded in tab.
-  browser.tabs.onUpdated.addListener((tabId, { status }, { url }) => {
-    if (status !== 'complete') { return }
+  // URL change (page loaded, or single-page app changed URL).
+  browser.tabs.onUpdated.addListener((tabId, { url }) => {
+    if (!url) { return }
     closePopup()
     getState(tabId, url)
   })
