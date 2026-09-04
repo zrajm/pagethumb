@@ -2,22 +2,24 @@ Pagethumb
 =========
 Download: [`pagethumb-latest.xpi`][latest]
 
-This is a Firefox extension for bookmarking & rating web pages. Whenever you
-visit a web page you’ll immediately see whether you have previously liked or
-disliked the page.—It’s a personal like/dislike feature for the web at large.
-Your likes are not shared with anybody (except your own future self).
+This is a Firefox bookmark extension, that instead of just showing you the
+default ⭐, lets you indicate whether you like a page or not using 👍 or 👎.
+The next time you visit your rating is the first thing you'll see.—This
+extension does not share your bookmarks or upload them anywhere. If your
+bookmarks are setup to sync between devices, then your ratings are also synced.
 
 <toc heading=Contents class=toc>
 
 
 What Does It Look Like?
 -----------------------
-Here’s the extension at work.
+Here’s what the extension looks like in its various states:
 
+![disabled]\
 ![default]\
-![like]\
-![dislike]\
-![bookmark]\
+![thumbsup]\
+![thumbsdown]\
+![bookmarked]\
 ![menu]
 
 
@@ -27,7 +29,6 @@ I find Firefox’s default appearance too cluttered, and creating this extension
 is part of trying to fix that for myself. Even better is using Pagethumb *plus*
 removing the bookmark (⭐) and reader buttons from Firefox’s URL field.—If you
 also want this, do the following:
-
 
 **Enable user customizations**
 
@@ -56,9 +57,12 @@ that as an exercise for the reader.
 A Confusion of Bookmarks
 ------------------------
 Internally Pagethumb stores likes/dislikes as bookmarks (meaning that they’ll
-automatically sync between your devices when your bookmarks do). A liked page
-is saved in the bookmark folder 👍, and a disliked page in 👎. If a page has
-been bookmarked outside of these folders it’ll show up as ⭐.
+automatically sync between your devices if you have set up your bookmarks to do
+so). Liked pages are saved in the bookmark folder 👍, and disliked pages in 👎.
+And finally, if a page has been bookmarked outside of these folders it’ll show
+up as <img src="firefox-extension/pic/bookmark-active.svg" style="height:1rem"
+alt=bookmark>. Saving a page in this category will create (or move) the
+relevant bookmark into the ⭐ folder.
 
 
 ### If There Are Multiple Bookmarks
@@ -86,11 +90,13 @@ if you do go to that page and give it a thumbs up Pagethumb will save a new
 bookmark https://www.youtube.com/watch?v=yuXVu595DBI (without the `t`
 parameter).
 
-[bookmark]: pic/bookmark.png
+[bookmark]: firefox-extension/pic/bookmark.svg
+[bookmarked]: pic/bookmarked.png
 [default]: pic/default.png
-[dislike]: pic/dislike.png
+[disabled]: pic/disabled.png
 [latest]: releases/pagethumb-latest.xpi
-[like]: pic/like.png
 [menu]: pic/menu.png
+[thumbsdown]: pic/thumbsdown.png
+[thumbsup]: pic/thumbsup.png
 
 <!--EOF-->
