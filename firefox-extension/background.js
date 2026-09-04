@@ -35,7 +35,7 @@ const normalizeUrl = url => {
   return url.href
 }
 
-// getBookmarkFolder(URL) -- Return `{ folder, bookmarks }`. name of extension
+// getBookmarkFolder(URL) -- Return `{ folder, bookmarks }`, name of extension
 // folder + list of all bookmarks IDs matching URL (= the bookmarks to modify).
 const getBookmarkFolder = (url) => Promise.resolve()
   .then(() => browser.bookmarks.search({ url: normalizeUrl(url) }))
@@ -75,6 +75,7 @@ const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
     }
   }
   return Promise.allSettled([
+    browser.action[ state ? 'enable' : 'disable'](),
     browser.action.setPopup({ tabId, popup }), // enable/disable popup
     browser.action.setIcon({ tabId, path }),
     // Show badge if there is more than one bookmark for this page.

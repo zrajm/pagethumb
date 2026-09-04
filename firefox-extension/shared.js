@@ -4,7 +4,7 @@
 export const getCurrentTab = () =>
   browser.tabs.query({ active: true, currentWindow: true }).then(([x]) => x)
 
-export const errorIcon   = ['pic/thumbsup-dimmed.svg',  'Unsupported page']
+export const errorIcon   = ['pic/thumbsup.svg', 'Unsupported page']
 export const defaultIcon = ['pic/thumbsup.svg', 'Like page']
 export const categoryIcons = {
     '👍': {
