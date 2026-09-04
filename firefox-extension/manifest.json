@@ -15,7 +15,7 @@
   },
   "description": "Like/dislike pages, storing vote as a bookmark.",
   "icons": {
-    "48": "pic/like-hilite.svg"
+    "48": "pic/thumbsup-active.svg"
   },
   "permissions": [
     "activeTab",
@@ -31,8 +31,8 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "pic/like-normal.svg",
-      "32": "pic/like-normal.svg"
+      "16": "pic/thumbsup.svg",
+      "32": "pic/thumbsup.svg"
     },
     "default_title": " "
   }
