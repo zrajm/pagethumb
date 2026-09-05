@@ -26,6 +26,11 @@
           "version": "0.6",
           "update_link": "https://zrajm.org/pagethumb/releases/pagethumb-0.6.xpi",
           "update_hash": "sha256:8ab5bc9510eaca8f05c8ca9ac6bcfb98d2939c276e3438d598002b33d9b60093"
+        },
+        {
+          "version": "0.7",
+          "update_link": "https://zrajm.org/pagethumb/releases/pagethumb-0.7.xpi",
+          "update_hash": "sha256:44e4de71ba0f1001c6efcc5bf986c0ccf41c92f7723198fcb7557c3fa35f27d7"
         }
       ]
     }
