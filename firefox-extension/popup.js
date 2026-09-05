@@ -1,7 +1,7 @@
 //-*- js-indent-level: 2 -*-
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
-import { getCurrentTab, categoryIcons } from './shared.js'
+import { getCurrentTab, activeIcons } from './shared.js'
 
 // Get category of current page.
 const getCategory = () => browser.runtime.sendMessage(['getCategory'])
@@ -27,12 +27,12 @@ browser.runtime.onMessage.addListener(([funcName]) => {
 getCategory()
   .then(category => category ?? setCategory('👍')) // set to 👍 if unset
   .then(category => {
-    if (category) {                          // hilite current category button
-      const { hilite } = categoryIcons[category]
-      const  btn  = document.querySelector(`button#${category}`)
-      const [img] = btn.children
-      ;[img.src, btn.title] = hilite         // set image & mouseover text
-    }
+    if (!category) { return }
+    // Hilite active category button in popup.
+    const  btn  = document.getElementById(category)
+    const [img] = btn.children
+    btn.title = activeIcons[category].text     // set button mouseover text
+    img.src   = activeIcons[category].path     // set button icon
   })
 
 //EOF

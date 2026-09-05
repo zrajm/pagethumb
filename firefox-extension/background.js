@@ -1,14 +1,12 @@
 //-*- js-indent-level: 2 -*-
 // Copyright 2026 by zrajm. License: GPLv2 (code).
 
-import {
-  getCurrentTab, errorIcon, defaultIcon, categoryIcons
-} from './shared.js'
+import { getCurrentTab, activeIcons } from './shared.js'
 
 const UNFILED = 'unfiled_____'
 
 // Key = category name, value = bookmark folder ID.
-let CATEGORIES = new Map([['👍'], ['👎'], ['⭐']])
+const CATEGORIES = new Map([['👍'], ['👎'], ['⭐']])
 
 // Create bookmark folders (if needed) & cache their IDs in CATEGORIES.
 const setupBookmarkFolders = () => Promise.all(
@@ -55,35 +53,33 @@ const getBookmarkFolder = (url) => Promise.resolve()
   })
   .catch(() => null)                           // bookmark API unavailable
 
+// Return unambiguous date string (e.g. '4 Sept 2025, 21:55')
+const prettyDate = x => new Date(x).toLocaleString(
+  undefined, { dateStyle: 'medium', timeStyle: 'short' })
+
 // Get state & update button icon and badge.
 const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
-  const { folder } = state ?? {}
-  let [path, title, popup] =
-        !state  ? [...errorIcon, '']  : // error
-        !folder ? [defaultIcon[0], null, null]
-                : [categoryIcons[folder].hilite[0], null, null]
-
-  // Build mouseover text for extension button.
-  const count = state?.bookmarks?.length ?? 0
-  if (count > 0) {
-    title = 'Bookmarked on:' + state.bookmarks.map(x => x.dateAdded)
-      .sort((a, b) => b - a)
-      .map(x => '\n - ' + (new Date(x).toLocaleString(
-        undefined, { dateStyle: 'medium', timeStyle: 'short' }))).join('')
-    if (count > 1) {
-      title += `\nAll are moved/deleted together`
-    }
-  }
-  return Promise.allSettled([
-    browser.action[ state ? 'enable' : 'disable'](),
-    browser.action.setPopup({ tabId, popup }), // enable/disable popup
-    browser.action.setIcon({ tabId, path }),
-    // Show badge if there is more than one bookmark for this page.
-    browser.action.setBadgeTextColor({ tabId, color: 'white' }),
-    browser.action.setBadgeBackgroundColor({ tabId, color: '#a00' }),
-    browser.action.setBadgeText({ tabId, text: `${count > 1 ? count : ''}` }),
-    browser.action.setTitle({ tabId, title }),
-  ]).then(() => state)
+  const { folder, bookmarks } = state ?? {}
+  const path  = activeIcons[folder]?.path      // manifest action.default_icon
+  const count = bookmarks?.length ?? 0
+  const text  = `${count > 1 ? count : ''}`
+  const title =
+      (!state ? 'Unsupported page' :
+       !count ? null               :           // manifest action.default_title
+       ('Bookmarked on:' + bookmarks
+        .map(x => x.dateAdded)
+        .sort((a, b) => b - a)
+        .map(x => `\n - ${prettyDate(x)}`)
+        .join('')
+       ) + (count > 1 ? '\nLinks move together' : ''))
+  // Update extension toolbar button.
+  Promise.allSettled([                         // ignore rejections
+    browser.action[state ? 'enable' : 'disable'](tabId), // toggle button
+    browser.action.setIcon     ({ tabId, path  }), // extension button icon
+    browser.action.setTitle    ({ tabId, title }), // mouseover text
+    browser.action.setBadgeText({ tabId, text  }), // bookmark count (if > 1)
+  ])
+  return state
 })
 
 const getCategory = () => getCurrentTab()
@@ -147,6 +143,12 @@ const main = () => {
   browser.bookmarks.onCreated.addListener(refreshToolbarButton)
   browser.bookmarks.onRemoved.addListener(refreshToolbarButton)
   browser.bookmarks.onMoved.addListener(refreshToolbarButton)
+
+  // Set text badge color in extension button.
+  Promise.allSettled([                         // ignore rejections
+    browser.action.setBadgeTextColor      ({ color: '#fff' }),
+    browser.action.setBadgeBackgroundColor({ color: '#a00' }),
+  ])
 
   // When extension is loaded.
   getCurrentTab().then(({ id, url }) => getState(id, url))

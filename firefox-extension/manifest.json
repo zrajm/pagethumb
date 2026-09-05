@@ -30,10 +30,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "16": "pic/thumbsup.svg",
-      "32": "pic/thumbsup.svg"
-    },
+    "default_icon": "pic/thumbsup.svg",
     "default_title": " "
   }
 }
