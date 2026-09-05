@@ -3,7 +3,7 @@ Author: Zrajm
 Favicon: firefox-extension/pic/thumbsup-active.svg
 License: <a href="https://gnu.org/licenses/gpl-2.0.html">GNU General Public License, version 2</a>.
 Created: 2026-06-25 20:16:34 +02:00
-Updated: 2026-09-05 07:22:30 +02:00
+Updated: 2026-09-05 08:03:59 +02:00
 -->
 
 
@@ -104,6 +104,43 @@ not show up as ⭐, and Pagethumb will never modify or move that bookmark). And
 if you do go to that page and give it a thumbs up Pagethumb will save a new
 bookmark https://www.youtube.com/watch?v=yuXVu595DBI (without the `t`
 parameter).
+
+
+# History
+
+**v0.7** – Improved extension button: Button status updates quicker on page
+change. Button availability is now toggled using `browser.action.enable()` and
+`.disable()` instead home-built system. (2026-09-05 05:13:14 +02:00)
+
+<div></div>
+
+**v0.6** – New icons: Removed unnecessary details from all SVG icons (for
+speed) and adjusted icon colors to match Firefox defaults. Dropped the
+Firefox-centric ⭐ symbol for bookmarks, and replaced it with the more
+traditional <img src="firefox-extension/pic/bookmark-active.svg"
+style="height:1rem; filter:invert(calc(1 - var(--darkmode))) grayscale(1)
+contrast(2);" alt=bookmark>. (2026-09-04 18:08:38 +02:00)
+
+<div></div>
+
+**v0.5** – Support for single-page app (SLA) webpages (e.g. Youtube).
+Previously the status of the extension were only updated on pageload, but not
+when navigating inside SLA pages, now all URL updates handled, regardless of
+type. (2026-08-27 15:48:22 +02:00)
+
+<div></div>
+
+**v0.4** – Fixed race condition in button status update. Switching tabs now
+automatically closes the popup. (2026-06-30 03:12:47 +02:00)
+
+<div></div>
+
+**v0.3** – Minor speed ups, permissions updated. (2026-06-29 22:27:42 +02:00)
+
+<div></div>
+
+**v0.2** – Basic functionality implemented. (2026-06-28 14:02:40 +02:00)
+
 
 -------------------------------------------------------------------------------
 
