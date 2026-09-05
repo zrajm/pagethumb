@@ -1,19 +1,33 @@
-Pagethumb
-=========
-Download: [`pagethumb-latest.xpi`][latest]
+<!--
+Author: Zrajm
+Favicon: firefox-extension/pic/thumbsup-active.svg
+License: <a href="https://gnu.org/licenses/gpl-2.0.html">GNU General Public License, version 2</a>.
+Created: 2026-06-25 20:16:34 +02:00
+Updated: 2026-09-05 07:22:30 +02:00
+-->
 
-This is a Firefox bookmark extension, that instead of just showing you the
-default ⭐, lets you indicate whether you like a page or not using 👍 or 👎.
-The next time you visit your rating is the first thing you'll see.—This
-extension does not share your bookmarks or upload them anywhere. If your
-bookmarks are setup to sync between devices, then your ratings are also synced.
+
+# Pagethumb: 👍 Bookmark Extension for Firefox
+
+> This is a Firefox bookmark extension, that instead of just showing you the
+> default ⭐, lets you indicate whether you like a page or not using 👍 or 👎.
+> The next time you visit your rating is the first thing you'll see.—This
+> extension does not share your bookmarks or upload them anywhere. If your
+> bookmarks are setup to sync between devices, then your ratings are also
+> synced.
+
+Download: [`pagethumb-latest.xpi`][latest]
 
 <toc heading=Contents class=toc>
 
+-------------------------------------------------------------------------------
 
-What Does It Look Like?
------------------------
+
+# What Does It Look Like?
+
 Here’s what the extension looks like in its various states:
+
+<div></div>
 
 ![disabled]\
 ![default]\
@@ -23,8 +37,8 @@ Here’s what the extension looks like in its various states:
 ![menu]
 
 
-Decluttering Firefox
---------------------
+# Decluttering Firefox
+
 I find Firefox’s default appearance too cluttered, and creating this extension
 is part of trying to fix that for myself. Even better is using Pagethumb *plus*
 removing the bookmark (⭐) and reader buttons from Firefox’s URL field.—If you
@@ -54,18 +68,19 @@ That’s it! There’s a gazillion other things you can change too, but I’ll l
 that as an exercise for the reader.
 
 
-A Confusion of Bookmarks
-------------------------
+# A Confusion of Bookmarks
+
 Internally Pagethumb stores likes/dislikes as bookmarks (meaning that they’ll
 automatically sync between your devices if you have set up your bookmarks to do
 so). Liked pages are saved in the bookmark folder 👍, and disliked pages in 👎.
 And finally, if a page has been bookmarked outside of these folders it’ll show
-up as <img src="firefox-extension/pic/bookmark-active.svg" style="height:1rem"
+up as <img src="firefox-extension/pic/bookmark-active.svg" style="height:1rem;
+filter:invert(calc(1 - var(--darkmode))) grayscale(1) contrast(2);"
 alt=bookmark>. Saving a page in this category will create (or move) the
 relevant bookmark into the ⭐ folder.
 
 
-### If There Are Multiple Bookmarks
+## If There Are Multiple Bookmarks
 
 A page might have multiple bookmarks. This is how Pagethumb deals with that.
 
@@ -78,7 +93,7 @@ to a page outside of any category folders, it belongs to the last category. If
 a page is not bookmarked it does not belong to any category.
 
 
-### URL Normalization
+## URL Normalization
 
 Pagethumb normalizes all URLs. This strips well-known URL parameters used for
 tracking and simplifies Youtube URLs. Internally Pagethumb only uses normalized
@@ -90,13 +105,15 @@ if you do go to that page and give it a thumbs up Pagethumb will save a new
 bookmark https://www.youtube.com/watch?v=yuXVu595DBI (without the `t`
 parameter).
 
-[bookmark]: firefox-extension/pic/bookmark.svg
-[bookmarked]: pic/bookmarked.png
-[default]: pic/default.png
-[disabled]: pic/disabled.png
+-------------------------------------------------------------------------------
+
+[bookmark]: firefox-extension/pic/bookmark.svg?darkmode=no
+[bookmarked]: pic/bookmarked.png?darkmode=no
+[default]: pic/default.png?darkmode=no
+[disabled]: pic/disabled.png?darkmode=no
 [latest]: releases/pagethumb-latest.xpi
-[menu]: pic/menu.png
-[thumbsdown]: pic/thumbsdown.png
-[thumbsup]: pic/thumbsup.png
+[menu]: pic/menu.png?darkmode=no
+[thumbsdown]: pic/thumbsdown.png?darkmode=no
+[thumbsup]: pic/thumbsup.png?darkmode=no
 
 <!--EOF-->
