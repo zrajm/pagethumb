@@ -3,6 +3,10 @@
 # See: https://zrajm.org/pagethumb/
 cd ${0%/*}/firefox-extension || exit 5
 rm -f ../pagethumb.xpi || exit 5
-zip -r ../pagethumb.xpi * -x'*~' -x'*.xpi' -x"${0##*/}"
+
+# Add files in alphabetical order.
+find . -type f | \
+    LC_COLLATE=C sort | \
+    zip -@ ../pagethumb.xpi --exclude '#*#' '.#*' '*~' '*.bak' '*.tmp'
 
 #EOF
