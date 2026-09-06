@@ -1,6 +1,9 @@
 -*- org -*-
 #+TODO: TODO | DONE CANT(!)
 
+* TODO Add githooks
+  Should validate manifest version number(?) and 'Updated' metadata field in
+  README.md.
 * TODO Add a link to web page from zrajm.org?
 * TODO Normalize title (removing '(...)' at beginning of Youtube videos)
 * TODO Undo on delete
