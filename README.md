@@ -165,6 +165,11 @@ done by Firefox itself, not this extension.)
 
 # History
 
+**v0.8** -- Removed the superfluous/unused `activeTab` permission. (2026-09-06
+12:45:01+0200)
+
+<div></div>
+
 **v0.7** -- Improved extension button: Button status updates quicker on page
 change. Now toggles button availability using `browser.action.enable()` and
 `.disable()` instead of a home-built system (which adjusted the button icon
