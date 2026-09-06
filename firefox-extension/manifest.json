@@ -18,7 +18,6 @@
     "48": "pic/thumbsup-active.svg"
   },
   "permissions": [
-    "activeTab",
     "bookmarks",
     "tabs"
   ],
