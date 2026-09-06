@@ -64,14 +64,13 @@ const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
   const count = bookmarks?.length ?? 0
   const text  = `${count > 1 ? count : ''}`
   const title =
-      (!state ? 'Unsupported page' :
-       !count ? null               :           // manifest action.default_title
-       ('Bookmarked on:' + bookmarks
-        .map(x => x.dateAdded)
-        .sort((a, b) => b - a)
-        .map(x => `\n - ${prettyDate(x)}`)
-        .join('')
-       ) + (count > 1 ? '\nLinks move together' : ''))
+    (!state ? 'Unsupported page' :
+     !count ? null               :             // manifest action.default_title
+     ('Bookmarked on:' + bookmarks
+      .map(x => x.dateAdded)
+      .sort((a, b) => b - a)
+      .map(x => `\n - ${prettyDate(x)}`)
+      .join('')))
   // Update extension toolbar button.
   Promise.allSettled([                         // ignore rejections
     browser.action[state ? 'enable' : 'disable'](tabId), // toggle button
