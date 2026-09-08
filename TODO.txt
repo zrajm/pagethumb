@@ -12,6 +12,22 @@
 * TODO On move: Merge if there are multiple bookmarks
   This should combine tags, and keep the creation date of the oldest bookmark.
 * TODO Synchronize bookmarks with phone?
+** TODO Look for bookmark when tab is selected by user
+   If there's no bookmark ID for a tab, try to look it up every time the user
+   selects the tab? -- This is needed to catch newly synced bookmarks.
+
+   Is this reasonable? Or is it too heavy-handed? Is there some other way
+   around detecting when a bookmark has been synced?
+
+   If we have a session-saved bookmark ID for each tab, then at least we won't
+   have to do this for tabs that HAVE a bookmark (cause we can look those
+   quickly/efficiently using their bookmark ID).
+** TODO More efficient tab status update
+   Instead of ALL tabs having to look up their page when there's a bookmark
+   change, keep track of currently open bookmarks (save the bookmark ID for
+   each tab using `setTabValue()` and `getTabValue` of `browser.session`). This
+   way, when on a bookmark change the status can immediately be updated for the
+   relevant tab. (?)
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
 * DONE Update button when single-page apps change the URL
