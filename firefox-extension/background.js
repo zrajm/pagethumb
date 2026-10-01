@@ -33,20 +33,23 @@ const normalizeUrl = url => {
   return url.href
 }
 
-// getBookmarkFolder(URL) -- Return `{ folder, bookmarks }`, name of extension
-// folder + list of all bookmarks IDs matching URL (= the bookmarks to modify).
-const getBookmarkFolder = (url) => Promise.resolve()
+// getBookmarks(URL) -- Returns promise which resolves to `null` on failure, or
+// `{ category, bookmarks }` on success. (<category> is either '👍', '👎' or
+// '⭐' if URL has been bookmarked before, or '' if it hasn't. <bookmarks> is
+// an array of bookmarks of URL, as returned by `browser.bookmarks.search()`).
+const getBookmarks = (url) => Promise.resolve()
   .then(() => browser.bookmarks.search({ url: normalizeUrl(url) }))
   .then(bookmarks => {
     if (bookmarks.length === 0) {              // non-bookmarked page
-      return { folder: '', bookmarks: [] }
+      return { category: '', bookmarks: [] }
     }
     let remain = CATEGORIES.size - 1
-    for (const [folder, id] of CATEGORIES) {
+    for (const [category, id] of CATEGORIES) {
       if (!remain || bookmarks.some(({ parentId }) => parentId === id)) {
-        // a) Return first folder which contains a bookmark.
-        // b) If none, return the last (catch-all) folder.
-        return { folder, bookmarks }
+        // <category> is first bookmark folder (of '👍' or '👎') which contains
+        // current page. Or, if none found, the last (catch-all) category
+        // ('⭐').
+        return { category, bookmarks }
       }
       remain -= 1
     }
@@ -57,10 +60,11 @@ const getBookmarkFolder = (url) => Promise.resolve()
 const prettyDate = x => new Date(x).toLocaleString(
   undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
-// Get state & update button icon and badge.
-const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
-  const { folder, bookmarks } = state ?? {}
-  const path  = activeIcons[folder]?.path      // manifest action.default_icon
+// getState() -- Get state & update button icon and badge. Returns the same as
+// getBookmarks(URL).
+const getState = (tabId, url) => getBookmarks(url).then(state => {
+  const { category, bookmarks } = state ?? {}
+  const path  = activeIcons[category]?.path    // manifest action.default_icon
   const count = bookmarks?.length ?? 0
   const text  = `${count > 1 ? count : ''}`
   const title =
@@ -82,8 +86,8 @@ const getState = (tabId, url) => getBookmarkFolder(url).then(state => {
 })
 
 const getCategory = () => getCurrentTab()
-  .then(tab => getBookmarkFolder(tab?.url))
-  .then(({ folder }) => folder || null)
+  .then(tab => getBookmarks(tab?.url))
+  .then(({ category }) => category || null)
 
 const setCategory = (category) => getCurrentTab()
   .then(({ id, url, title }) =>
@@ -93,7 +97,7 @@ const setCategory = (category) => getCurrentTab()
       ?? CATEGORIES.get([...CATEGORIES.keys()].pop())
 
     // Hilited button clicked: Delete bookmark(s)
-    if (state.folder === category) {
+    if (state.category === category) {
       return Promise.all(state.bookmarks.map(
         ({ id }) => browser.bookmarks.remove(id)))
     }
