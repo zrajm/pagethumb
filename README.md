@@ -165,6 +165,18 @@ done by Firefox itself, not this extension.)
 
 # History
 
+**v0.10** -- The single-page app (SPA) support added to version 0.5, didn't
+actually work, as event functions where mistakenly set up inside an
+asynchronous `main()` function. (Listeners set up this way does not survive
+manifest 3's killing of background processes.)
+
+<div></div>
+
+**v0.9** -- Doesn't exist. (Removed a version uploaded to addons.mozilla.org
+which contained superfluous files.)
+
+<div></div>
+
 **v0.8** -- Removed the superfluous/unused `activeTab` permission. (2026-09-06
 12:45:01+0200)
 
