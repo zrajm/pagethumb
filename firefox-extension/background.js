@@ -126,48 +126,44 @@ const closePopup = () => {
   browser.runtime.sendMessage(['closePopup']).catch(() => {})
 }
 
-// Main.
-const main = () => {
-
-  // URL change (page loaded, or single-page app changed URL).
-  browser.tabs.onUpdated.addListener((tabId, { url }) => {
-    if (!url) { return }
-    closePopup()
-    updateToolbarButton(tabId, url)
-  })
-
-  // Browser switched to new tab.
-  browser.tabs.onActivated.addListener(({ tabId }) => {
-    browser.tabs.get(tabId).then(({ id, url }) => {
-      closePopup()
-      updateToolbarButton(id, url)
-    })
-  })
-
-  // Bookmark was updated (by us or someone else).
-  browser.bookmarks.onCreated.addListener(updateToolbarButtonEvent)
-  browser.bookmarks.onRemoved.addListener(updateToolbarButtonEvent)
-  browser.bookmarks.onMoved.addListener(updateToolbarButtonEvent)
-
-  // Set text badge color in extension button.
-  Promise.allSettled([                         // ignore rejections
-    browser.action.setBadgeTextColor      ({ color: '#fff' }),
-    browser.action.setBadgeBackgroundColor({ color: '#a00' }),
-  ])
-
-  // When extension is loaded.
-  getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url))
-}
-
 // Make sure bookmark folders exist for all categories.
 const setupPromise = setupBookmarkFolders()
+
+// Event listeners must be registered synchronously at top level (MV3 event
+// page), so each handler waits for the folders to exist instead.
+
+// URL change (page loaded, or single-page app changed URL).
+browser.tabs.onUpdated.addListener((tabId, { url }) => {
+  if (!url) { return }
+  closePopup()
+  setupPromise.then(() => updateToolbarButton(tabId, url))
+})
+
+// Browser switched to new tab.
+browser.tabs.onActivated.addListener(({ tabId }) => {
+  browser.tabs.get(tabId).then(({ id, url }) => {
+    closePopup()
+    return setupPromise.then(() => updateToolbarButton(id, url))
+  })
+})
+
+// Bookmark was updated (by us or someone else).
+browser.bookmarks.onCreated.addListener(() => setupPromise.then(updateToolbarButtonEvent))
+browser.bookmarks.onRemoved.addListener(() => setupPromise.then(updateToolbarButtonEvent))
+browser.bookmarks.onMoved  .addListener(() => setupPromise.then(updateToolbarButtonEvent))
 
 // Listen for popup messages; wait for folders to exist before answering.
 browser.runtime.onMessage.addListener(([funcName, ...args]) =>
   setupPromise.then(() => ({ getCategory, setCategory }[funcName](...args)))
 )
 
-// When category folders exist, run main.
-setupPromise.then(main)
+// Set text badge color in extension button.
+Promise.allSettled([                           // ignore rejections
+  browser.action.setBadgeTextColor      ({ color: '#fff' }),
+  browser.action.setBadgeBackgroundColor({ color: '#a00' }),
+])
+
+// When extension is loaded.
+setupPromise.then(() => getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url)))
 
 //EOF
