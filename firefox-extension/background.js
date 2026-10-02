@@ -87,13 +87,14 @@ const updateToolbarButton = (tabId, url) => getBookmarks(url).then(state => {
 
 const getCategory = () => getCurrentTab()
   .then(tab => getBookmarks(tab?.url))
-  .then(({ category }) => category || null)
+  .then(state => state?.category || null)
 
 const setCategory = (category) => getCurrentTab()
   .then(({ id, url, title }) => updateToolbarButton(id, url)
     .then(state => ({ tab: { id, url, title }, state }))
   )
   .then(({ tab, state }) => {
+    if (!state) { return }                     // bookmark API unavailable
     const targetFolderId = CATEGORIES.get(category)
       ?? CATEGORIES.get([...CATEGORIES.keys()].pop())
 
