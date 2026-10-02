@@ -60,9 +60,9 @@ const getBookmarks = (url) => Promise.resolve()
 const prettyDate = x => new Date(x).toLocaleString(
   undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
-// getState() -- Get state & update button icon and badge. Returns the same as
-// getBookmarks(URL).
-const getState = (tabId, url) => getBookmarks(url).then(state => {
+// updateToolbarButton(TABID, URL) -- Get state & update button icon and badge.
+// Returns the same as getBookmarks(URL).
+const updateToolbarButton = (tabId, url) => getBookmarks(url).then(state => {
   const { category, bookmarks } = state ?? {}
   const path  = activeIcons[category]?.path    // manifest action.default_icon
   const count = bookmarks?.length ?? 0
@@ -90,8 +90,9 @@ const getCategory = () => getCurrentTab()
   .then(({ category }) => category || null)
 
 const setCategory = (category) => getCurrentTab()
-  .then(({ id, url, title }) =>
-    getState(id, url).then(state => ({ tab: { id, url, title }, state })))
+  .then(({ id, url, title }) => updateToolbarButton(id, url)
+    .then(state => ({ tab: { id, url, title }, state }))
+  )
   .then(({ tab, state }) => {
     const targetFolderId = CATEGORIES.get(category)
       ?? CATEGORIES.get([...CATEGORIES.keys()].pop())
@@ -115,8 +116,8 @@ const setCategory = (category) => getCurrentTab()
   }).then(() => category)
 
 // When a bookmark change
-const refreshToolbarButton = () => {
-  getCurrentTab().then(({ id, url }) => getState(id, url))
+const updateToolbarButtonEvent = () => {
+  getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url))
 }
 
 // Tell popup to close itself.
@@ -131,21 +132,21 @@ const main = () => {
   browser.tabs.onUpdated.addListener((tabId, { url }) => {
     if (!url) { return }
     closePopup()
-    getState(tabId, url)
+    updateToolbarButton(tabId, url)
   })
 
   // Browser switched to new tab.
   browser.tabs.onActivated.addListener(({ tabId }) => {
     browser.tabs.get(tabId).then(({ id, url }) => {
       closePopup()
-      getState(id, url)
+      updateToolbarButton(id, url)
     })
   })
 
   // Bookmark was updated (by us or someone else).
-  browser.bookmarks.onCreated.addListener(refreshToolbarButton)
-  browser.bookmarks.onRemoved.addListener(refreshToolbarButton)
-  browser.bookmarks.onMoved.addListener(refreshToolbarButton)
+  browser.bookmarks.onCreated.addListener(updateToolbarButtonEvent)
+  browser.bookmarks.onRemoved.addListener(updateToolbarButtonEvent)
+  browser.bookmarks.onMoved.addListener(updateToolbarButtonEvent)
 
   // Set text badge color in extension button.
   Promise.allSettled([                         // ignore rejections
@@ -154,7 +155,7 @@ const main = () => {
   ])
 
   // When extension is loaded.
-  getCurrentTab().then(({ id, url }) => getState(id, url))
+  getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url))
 }
 
 // Make sure bookmark folders exist for all categories.
