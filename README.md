@@ -168,12 +168,12 @@ done by Firefox itself, not this extension.)
 **v0.10** -- The single-page app (SPA) support added to version 0.5, didn't
 actually work, as event functions where mistakenly set up inside an
 asynchronous `main()` function. (Listeners set up this way does not survive
-manifest 3's killing of background processes.)
+manifest 3's killing of background processes.) (2026-10-03 01:20:48 +0200)
 
 <div></div>
 
-**v0.9** -- Doesn't exist. (Removed a version uploaded to addons.mozilla.org
-which contained superfluous files.)
+**v0.9** -- Revoked version. This version was uploaded to, and signed by,
+addons.mozilla.org, but accidentally contained superfluous source code files.
 
 <div></div>
 
@@ -182,14 +182,14 @@ which contained superfluous files.)
 
 <div></div>
 
-**v0.7** -- Improved extension button: Button status updates quicker on page
+**v0.7** -- Faster toolbar button update: Button status updates quicker on page
 change. Now toggles button availability using `browser.action.enable()` and
 `.disable()` instead of a home-built system (which adjusted the button icon
 transparency, and disabled the popup manually). (2026-09-05 05:13:14+02:00)
 
 <div></div>
 
-**v0.6** -- New icons: Removed unnecessary details from all SVG icons (for
+**v0.6** -- New icons: Removed unnecessary detail from all SVG icons (for
 speed) and adjusted (hardcoded) icon colors to match Firefox defaults. Dropped
 the Firefox-centric ⭐ symbol for bookmarks, and replaced it with the more
 widespread <img src="firefox-extension/pic/bookmark.svg" style="height:1rem;
@@ -206,7 +206,8 @@ type. (2026-08-27 15:48:22+02:00)
 <div></div>
 
 **v0.4** -- Fixed race condition in button status update. Also, automatically
-close popup if user switches tab in the browser. (2026-06-30 03:12:47+02:00)
+close popup when user switches to a different tab in the browser. (2026-06-30
+03:12:47+02:00)
 
 <div></div>
 
@@ -214,7 +215,7 @@ close popup if user switches tab in the browser. (2026-06-30 03:12:47+02:00)
 
 <div></div>
 
-**v0.2** -- Initially implemented. (2026-06-28 14:02:40+02:00)
+**v0.2** -- Initial implementation. (2026-06-28 14:02:40+02:00)
 
 
 # Author & Copyright
