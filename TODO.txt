@@ -35,6 +35,13 @@
   window), `updateToolbarButtonEvent` and `setCategory` throw on destructuring.
   Both are unhandled promise rejections that do nothing visible, and the same
   applies to `onActivated` for a tab that just closed.
+* DONE Lazy-create category bookmark folders as needed
+  CLOSED: [2026-10-03 Sat 18:03]
+  Instead of making sure the category bookmark folders ('👍', '👎' and '⭐')
+  are created startup, create them as needed.
+
+  Since 'startup' is invoked every time the popup is opened, it's worth cutting
+  down on it.
 * DONE `setCategory()` should return `null` on failure
   CLOSED: [2026-10-03 Sat 16:22]
   This return value of `setCategory()` is ignored in most places, except when

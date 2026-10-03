@@ -5,17 +5,15 @@ import { getCurrentTab, activeIcons } from './shared.js'
 
 const UNFILED = 'unfiled_____'
 
-// Key = category name, value = bookmark folder ID.
-const CATEGORIES = new Map([['👍'], ['👎'], ['⭐']])
+// Category names, in priority order (last one is the catch-all).
+const CATEGORIES = ['👍', '👎', '⭐']
 
-// Create bookmark folders (if needed) & cache their IDs in CATEGORIES.
-const setupBookmarkFolders = () => Promise.all(
-  [...CATEGORIES.keys()].map(title =>
-    browser.bookmarks.search({ title })
-      .then(matches =>
-        matches.find(x => x.type === 'folder' && x.parentId === UNFILED)
-          ?? browser.bookmarks.create({ title, type: 'folder', parentId: UNFILED }))
-      .then(({ id, title }) => CATEGORIES.set(title, id))))
+// Find (or create) the bookmark folder for a category, resolves to its ID.
+const ensureFolder = title => browser.bookmarks.search({ title })
+  .then(matches =>
+    matches.find(x => x.type === 'folder' && x.parentId === UNFILED)
+      ?? browser.bookmarks.create({ title, type: 'folder', parentId: UNFILED }))
+  .then(({ id }) => id)
 
 const normalizeUrl = url => {
   try { url = new URL(url) } catch { return url }
@@ -43,16 +41,17 @@ const getBookmarks = (url) => Promise.resolve()
     if (bookmarks.length === 0) {              // non-bookmarked page
       return { category: '', bookmarks: [] }
     }
-    let remain = CATEGORIES.size - 1
-    for (const [category, id] of CATEGORIES) {
-      if (!remain || bookmarks.some(({ parentId }) => parentId === id)) {
+    // Category is found by the title of the folder(s) containing the page.
+    return browser.bookmarks.get([...new Set(bookmarks.map(x => x.parentId))])
+      .then(parents => {
+        const titles = new Set(
+          parents.filter(x => x.parentId === UNFILED).map(x => x.title))
         // <category> is first bookmark folder (of '👍' or '👎') which contains
         // current page. Or, if none found, the last (catch-all) category
         // ('⭐').
+        const category = CATEGORIES.find(x => titles.has(x)) ?? CATEGORIES.at(-1)
         return { category, bookmarks }
-      }
-      remain -= 1
-    }
+      })
   })
   .catch(() => null)                           // bookmark API unavailable
 
@@ -102,29 +101,30 @@ const setCategory = (category) => getCurrentTab()
   )
   .then(({ tab, state }) => {
     if (!state) { return null }                // bookmark API unavailable
-    const targetFolderId = CATEGORIES.get(category)
-      ?? CATEGORIES.get([...CATEGORIES.keys()].pop())
+    const target = CATEGORIES.includes(category) ? category : CATEGORIES.at(-1)
 
-    // Hilited button clicked: Delete bookmark(s)
+    // Hilited button clicked: Delete bookmark(s).
     if (state.category === category) {
       return Promise.all(state.bookmarks.map(
         ({ id }) => browser.bookmarks.remove(id))).then(() => '')
     }
-    // Unhilited button clicked: Move existing bookmark(s) to target
-    if (state.bookmarks.length > 0) {
-      return Promise.all(state.bookmarks.map(
-        ({ id }) => browser.bookmarks.move(id, { parentId: targetFolderId })))
-        .then(() => category)
-    }
-    // Unhilited button clicked: None existing -- create new
-    return browser.bookmarks.create({
-      parentId: targetFolderId,
-      title   : tab.title ?? tab.url,
-      url     : normalizeUrl(tab.url),
-    }).then(() => category)
+    // Unhilited button clicked: Make sure target folder exists, then...
+    return ensureFolder(target).then(targetFolderId => {
+      // ...move existing bookmark(s) to target.
+      if (state.bookmarks.length > 0) {
+        return Promise.all(state.bookmarks.map(
+          ({ id }) => browser.bookmarks.move(id, { parentId: targetFolderId })))
+      }
+      // ...or, if no bookmark exists, create one.
+      return browser.bookmarks.create({
+        parentId: targetFolderId,
+        title   : tab.title ?? tab.url,
+        url     : normalizeUrl(tab.url),
+      })
+    }).then(() => target)
   })
 
-// When a bookmark change
+// When a bookmark change.
 const updateToolbarButtonEvent = () => {
   getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url))
 }
@@ -134,34 +134,28 @@ const closePopup = () => {
   browser.runtime.sendMessage(['closePopup']).catch(() => {})
 }
 
-// Make sure bookmark folders exist for all categories.
-const setupPromise = setupBookmarkFolders()
-
-// Event listeners must be registered synchronously at top level (MV3 event
-// page), so each handler waits for the folders to exist instead.
-
 // URL change (page loaded, or single-page app changed URL).
 browser.tabs.onUpdated.addListener((tabId, { url }, tab) => {
   if (tab.active) { closePopup() }
-  setupPromise.then(() => updateToolbarButton(tabId, url))
+  updateToolbarButton(tabId, url)
 }, { properties: ['url'] })
 
 // Browser switched to new tab.
 browser.tabs.onActivated.addListener(({ tabId }) => {
   browser.tabs.get(tabId).then(({ id, url }) => {
     closePopup()
-    return setupPromise.then(() => updateToolbarButton(id, url))
+    return updateToolbarButton(id, url)
   })
 })
 
 // Bookmark was updated (by us or someone else).
-browser.bookmarks.onCreated.addListener(() => setupPromise.then(updateToolbarButtonEvent))
-browser.bookmarks.onRemoved.addListener(() => setupPromise.then(updateToolbarButtonEvent))
-browser.bookmarks.onMoved  .addListener(() => setupPromise.then(updateToolbarButtonEvent))
+browser.bookmarks.onCreated.addListener(updateToolbarButtonEvent)
+browser.bookmarks.onRemoved.addListener(updateToolbarButtonEvent)
+browser.bookmarks.onMoved  .addListener(updateToolbarButtonEvent)
 
-// Listen for popup messages; wait for folders to exist before answering.
+// Listen for messages from popup.
 browser.runtime.onMessage.addListener(([funcName, ...args]) =>
-  setupPromise.then(() => ({ getCategory, setCategory }[funcName](...args)))
+  ({ getCategory, setCategory }[funcName](...args))
 )
 
 // Set text badge color in extension button.
@@ -171,6 +165,6 @@ Promise.allSettled([                           // ignore rejections
 ])
 
 // When extension is loaded.
-setupPromise.then(() => getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url)))
+getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url))
 
 //EOF
