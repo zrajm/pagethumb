@@ -134,10 +134,9 @@ const setupPromise = setupBookmarkFolders()
 
 // URL change (page loaded, or single-page app changed URL).
 browser.tabs.onUpdated.addListener((tabId, { url }) => {
-  if (!url) { return }
   closePopup()
   setupPromise.then(() => updateToolbarButton(tabId, url))
-})
+}, { properties: ['url'] })
 
 // Browser switched to new tab.
 browser.tabs.onActivated.addListener(({ tabId }) => {
