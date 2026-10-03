@@ -89,32 +89,40 @@ const getCategory = () => getCurrentTab()
   .then(tab => getBookmarks(tab?.url))
   .then(state => state?.category || null)
 
+// setCategory(CATEGORY) -- Returns promise. Move the bookmark(s) of the
+// current page into CATEGORY ('👍', '👎' or '⭐') and resolve the returned
+// promise with that emoji. If CATEGORY is already the current category of the
+// page, the page bookmark(s) are instead deleted and promise resolves to ''.
+// Resolves to `null` on failure (e.g. if the bookmark API is unavailable).
+// (This does not update the toolbar button -- events listening for bookmark
+// changes does that elsewhere.)
 const setCategory = (category) => getCurrentTab()
   .then(({ id, url, title }) => updateToolbarButton(id, url)
     .then(state => ({ tab: { id, url, title }, state }))
   )
   .then(({ tab, state }) => {
-    if (!state) { return }                     // bookmark API unavailable
+    if (!state) { return null }                // bookmark API unavailable
     const targetFolderId = CATEGORIES.get(category)
       ?? CATEGORIES.get([...CATEGORIES.keys()].pop())
 
     // Hilited button clicked: Delete bookmark(s)
     if (state.category === category) {
       return Promise.all(state.bookmarks.map(
-        ({ id }) => browser.bookmarks.remove(id)))
+        ({ id }) => browser.bookmarks.remove(id))).then(() => '')
     }
     // Unhilited button clicked: Move existing bookmark(s) to target
     if (state.bookmarks.length > 0) {
       return Promise.all(state.bookmarks.map(
         ({ id }) => browser.bookmarks.move(id, { parentId: targetFolderId })))
+        .then(() => category)
     }
-    // Unhilited button clicked: None exsisting -- create new
+    // Unhilited button clicked: None existing -- create new
     return browser.bookmarks.create({
       parentId: targetFolderId,
       title   : tab.title ?? tab.url,
       url     : normalizeUrl(tab.url),
-    })
-  }).then(() => category)
+    }).then(() => category)
+  })
 
 // When a bookmark change
 const updateToolbarButtonEvent = () => {

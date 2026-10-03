@@ -30,17 +30,20 @@
    relevant tab. (?)
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
-* TODO `setCategory` reports success when the bookmarks API failed
-  With the `if (!state) { return }` guard, the final `.then(() => category)`
-  still resolves to `category`. If that path were ever hit, the popup would
-  highlight a category although nothing was filed. In practice the toolbar
-  button is disabled whenever `getBookmarks` returns `null`, so the popup can't
-  normally open there.
 * TODO Missing-tab edge cases
   If `getCurrentTab()` resolves to `undefined` (for example, no focused browser
   window), `updateToolbarButtonEvent` and `setCategory` throw on destructuring.
   Both are unhandled promise rejections that do nothing visible, and the same
   applies to `onActivated` for a tab that just closed.
+* DONE `setCategory()` should return `null` on failure
+  CLOSED: [2026-10-03 Sat 16:22]
+  This return value of `setCategory()` is ignored in most places, except when
+  opening the popup for a page which has no category. In this case the returned
+  '👍' is used to set the page to the default category.
+
+  However, the category returned should always reflect the actual category of
+  the page. Now returns '' if the page category was unset, and `null` if
+  `setCategory()` failed.
 * DONE Don't close popup if unfocused tab reloads
   CLOSED: [2026-10-03 Sat 02:51]
   Closing when user switches tab (`onActivated`) is intentional and fine. The
@@ -118,4 +121,3 @@
 * CANT Display bookmark menu?
   CLOSED: [2026-06-22 Mon 07:26]
 * [eof]
-k
