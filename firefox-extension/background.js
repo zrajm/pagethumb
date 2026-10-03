@@ -133,8 +133,8 @@ const setupPromise = setupBookmarkFolders()
 // page), so each handler waits for the folders to exist instead.
 
 // URL change (page loaded, or single-page app changed URL).
-browser.tabs.onUpdated.addListener((tabId, { url }) => {
-  closePopup()
+browser.tabs.onUpdated.addListener((tabId, { url }, tab) => {
+  if (tab.active) { closePopup() }
   setupPromise.then(() => updateToolbarButton(tabId, url))
 }, { properties: ['url'] })
 

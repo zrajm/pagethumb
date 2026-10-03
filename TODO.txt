@@ -41,11 +41,14 @@
   window), `updateToolbarButtonEvent` and `setCategory` throw on destructuring.
   Both are unhandled promise rejections that do nothing visible, and the same
   applies to `onActivated` for a tab that just closed.
-* TODO `closePopup()` fires for any tab, not just the active one.
-  `tabs.onUpdated` fires for background tabs too (a page reloading itself, a
-  restored tab loading). If one navigates while your popup is open, the popup
-  closes. Guarding on the active tab fixes it, but only matters if you notice
-  popups vanishing.
+* DONE Don't close popup if unfocused tab reloads
+  CLOSED: [2026-10-03 Sat 02:51]
+  Closing when user switches tab (`onActivated`) is intentional and fine. The
+  problem is that in the `tabs.onUpdated` listener fires for every tab,
+  including background ones. If a background tab navigates or reloads while the
+  popup is open (for example a page redirecting itself or a restored tab
+  finishing loading) the popup closes even though the user didn't change
+  anything in the tab they're looking at.
 * DONE Only wake background script on URL change
   CLOSED: [2026-10-03 Sat 02:40]
   `tabs.onUpdated` wakes the event page far more often than needed.
