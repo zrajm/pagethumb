@@ -165,6 +165,14 @@ done by Firefox itself, not this extension.)
 
 # History
 
+**v0.11** -- Creation of bookmark folders for the different categories now
+happen on-demand, instead of every time the popup is opened. Tab changes are
+now ignored, unless its an URL change (allowing the background script to wake
+up less often). No longer performing redundant updates of the toolbar button
+status. (2026-10-04 03:37:39 +0200)
+
+<div></div>
+
 **v0.10** -- The single-page app (SPA) support added to version 0.5, didn't
 actually work, as event functions where mistakenly set up inside an
 asynchronous `main()` function. (Listeners set up this way does not survive
