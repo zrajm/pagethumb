@@ -96,7 +96,7 @@ const getCategory = () => getCurrentTab()
 // (This does not update the toolbar button -- events listening for bookmark
 // changes does that elsewhere.)
 const setCategory = (category) => getCurrentTab()
-  .then(tab => tab && updateToolbarButton(tab.id, tab.url)
+  .then(tab => tab && getBookmarks(tab.url)
     .then(state => ({ tab, state }))
   )
   .then(({ tab, state } = {}) => {

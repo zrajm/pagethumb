@@ -30,11 +30,13 @@
    relevant tab. (?)
 ** TODO Create similar extension for Android Firefox
    An also share info between phone and computers.
-* TODO Bring `setCategory()` in line with comment
+* DONE Remove unnecessary button update in `setCategory()`
+  CLOSED: [2026-10-04 Sun 02:19]
   Comment above `setCategory()` says it doesn't update the toolbar button, but
-  it still calls `updateToolbarButton()` before making changes. That's the
-  redundant refresh we discussed. Either the comment or the call should change,
-  for example by switching to `getBookmarks(tab.url)` there.
+  it still calls `updateToolbarButton()` before making changes. The call to
+  `updateToolbarButton()` is redundant since there are event listeners in place
+  that automatically update the toolbar button whenever a page's bookmark(s)
+  change.
 * DONE Don't throw if there is no active tab
   CLOSED: [2026-10-04 Sun 02:05]
   If `getCurrentTab()` resolves to `undefined` (for example, no focused browser
