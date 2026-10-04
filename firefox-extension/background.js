@@ -85,7 +85,7 @@ const updateToolbarButton = (tabId, url) => getBookmarks(url).then(state => {
 })
 
 const getCategory = () => getCurrentTab()
-  .then(tab => getBookmarks(tab?.url))
+  .then(tab => tab && getBookmarks(tab.url))
   .then(state => state?.category || null)
 
 // setCategory(CATEGORY) -- Returns promise. Move the bookmark(s) of the
@@ -96,11 +96,11 @@ const getCategory = () => getCurrentTab()
 // (This does not update the toolbar button -- events listening for bookmark
 // changes does that elsewhere.)
 const setCategory = (category) => getCurrentTab()
-  .then(({ id, url, title }) => updateToolbarButton(id, url)
-    .then(state => ({ tab: { id, url, title }, state }))
+  .then(tab => tab && updateToolbarButton(tab.id, tab.url)
+    .then(state => ({ tab, state }))
   )
-  .then(({ tab, state }) => {
-    if (!state) { return null }                // bookmark API unavailable
+  .then(({ tab, state } = {}) => {
+    if (!state) { return null }                // no tab, or no bookmark API
     const target = CATEGORIES.includes(category) ? category : CATEGORIES.at(-1)
 
     // Hilited button clicked: Delete bookmark(s).
@@ -125,9 +125,8 @@ const setCategory = (category) => getCurrentTab()
   })
 
 // When a bookmark change.
-const updateToolbarButtonEvent = () => {
-  getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url))
-}
+const updateToolbarButtonEvent = () => getCurrentTab()
+  .then(tab => tab && updateToolbarButton(tab.id, tab.url))
 
 // Tell popup to close itself.
 const closePopup = () => {
@@ -145,7 +144,7 @@ browser.tabs.onActivated.addListener(({ tabId }) => {
   browser.tabs.get(tabId).then(({ id, url }) => {
     closePopup()
     return updateToolbarButton(id, url)
-  })
+  }).catch(() => {})                           // tab was closed
 })
 
 // Bookmark was updated (by us or someone else).
@@ -165,6 +164,6 @@ Promise.allSettled([                           // ignore rejections
 ])
 
 // When extension is loaded.
-getCurrentTab().then(({ id, url }) => updateToolbarButton(id, url))
+updateToolbarButtonEvent()
 
 //EOF
